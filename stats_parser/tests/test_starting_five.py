@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import unittest
 from stats_parser.spiders.starting_five import StartingFiveSpider
 from responses import fake_response_from_file
