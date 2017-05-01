@@ -20,7 +20,7 @@ class StartingLineupSpider(scrapy.Spider):
         teams = response.xpath(x_teams_name).extract()
         teams = self.remove_whitespaces(teams)
         if len(teams) != 2:
-            raise ValueError("Number of temas is incorrect")
+            raise ValueError("Number of teams is incorrect")
 
         game_tables = response.xpath(x_game_tables)
         if len(game_tables) != 2:
