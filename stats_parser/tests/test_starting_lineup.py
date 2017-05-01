@@ -19,7 +19,7 @@ class StartingLineupTest(unittest.TestCase):
             },
             "Anwil Włocławek":{
                 "starting":["Tyler Haws", "Michał Chyliński", "Kamil Łączyński", "Fiodor Dmitriew", "Josip Sobin"],
-                "bench":["Toney  McCray", "Rafał Komenda", "Nemanja Jaramaz", "Mateusz Bartosz", "James Washington", "Paweł Leończyk", "Kacper Młynarski"],
+                "bench":["Toney McCray", "Rafał Komenda", "Nemanja Jaramaz", "Mateusz Bartosz", "James Washington", "Paweł Leończyk", "Kacper Młynarski"],
             },
         }
         self.assertEqual(results, expected)

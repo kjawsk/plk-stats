@@ -11,26 +11,32 @@ class StartingLineupSpider(scrapy.Spider):
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
+    def remove_whitespaces(self, string):
+        result = list(map(str.split, string))
+        result = [' '.join(x) for x in result]
+        return result
+
     def parse(self, response):
         teams = response.xpath(x_teams_name).extract()
-        teams = list(map(str.strip, teams))
+        teams = self.remove_whitespaces(teams)
         if len(teams) != 2:
             raise ValueError("Number of temas is incorrect")
-
-        starting_fives = response.xpath(x_starting_players).extract()
-        starting_fives = list(map(str.strip, starting_fives))
-        if len(starting_fives) != 10:
-            raise ValueError("Number of players in starting fives is incorrect")
-        teamA_starting = starting_fives[:5]
-        teamB_starting = starting_fives[5:10]
 
         game_tables = response.xpath(x_game_tables)
         if len(game_tables) != 2:
             raise ValueError("Number of game tables is incorrect")
+
+        teamA_starting = game_tables[0].xpath(x_starting_players).extract()
+        teamB_starting = game_tables[1].xpath(x_starting_players).extract()
+        teamA_starting = self.remove_whitespaces(teamA_starting)
+        teamB_starting = self.remove_whitespaces(teamB_starting)
+        if len(teamA_starting) != 5 or len(teamB_starting) != 5:
+            raise ValueError("One of starting fives has a incorrect number of players")
+
         teamA_bench = game_tables[0].xpath(x_bench_players).extract()
         teamB_bench = game_tables[1].xpath(x_bench_players).extract()
-        teamA_bench = list(map(str.strip, teamA_bench))
-        teamB_bench = list(map(str.strip, teamB_bench))
+        teamA_bench = self.remove_whitespaces(teamA_bench)
+        teamB_bench = self.remove_whitespaces(teamB_bench)
 
         return {teams[0]:{
                     "starting":teamA_starting,
