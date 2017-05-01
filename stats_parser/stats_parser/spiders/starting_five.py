@@ -1,4 +1,5 @@
 import scrapy
+from stats_parser.spiders.xpaths import x_teams_name, x_starting_fives
 
 class StartingFiveSpider(scrapy.Spider):
     name = "starting_five"
@@ -12,14 +13,16 @@ class StartingFiveSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
-        teamB_players = []
-        teamA_players = []
-        for idx, row in enumerate(response.xpath("//tr[td//i[@class='ico-star']]")):
-            if idx < 5:
-                teamA_players.append(row.xpath(".//a//strong/text()").extract_first())
-            elif 4 < idx < 10:
-                teamB_players.append(row.xpath(".//a//strong/text()").extract_first())
-            else:
-                raise ValueError("There is more than 10 players in starting fives")
-        return {"teamA" : teamA_players,
-                "teamB" : teamB_players}
+        teams = response.xpath(x_teams_name).extract()
+        if len(teams) != 2:
+            raise ValueError("Number of temas is incorrect")
+
+        starting_fives = response.xpath(x_starting_fives).extract()
+        if len(starting_fives) != 10:
+            raise ValueError("Number of players in starting fives is incorrect")
+
+        teamA_players = starting_fives[:5]
+        teamB_players = starting_fives[5:10]
+
+        return {teams[0] : teamA_players,
+                teams[1] : teamB_players}
