@@ -21,14 +21,14 @@ class PlayByPlaySpider(scrapy.Spider):
 
     def parse(self, response):
         extracted = response.xpath(x_play_by_play).extract()
-        without_tags = [remove_tags(x) for x in extracted if x != '<td>\xa0</td>']
-        without_tags = [without_tags[i]+" "+without_tags[i-1] for i in range(len(without_tags)) if i % 2 == 0]
-        actions = self.remove_whitespaces(without_tags)[2:]
+        cleaned = [remove_tags(x) for x in extracted if x != '<td>\xa0</td>']
+        linked = [cleaned[i]+cleaned[i-1] for i in range(len(cleaned)) if i % 2 == 0]
+        actions = self.remove_whitespaces(linked)[2:] #first two play are always empty => "10:00"
         regex = re.compile("\d{2}:\d{2}")
         for action in actions:
             time = regex.search(action).group()
             yield {
                 "team": "home" if regex.match(action) else "away",
                 "time": time,
-                "action": action.replace(regex.search(time).group(), "").strip(),
+                "action": action.replace(time, "").strip(),
             }
