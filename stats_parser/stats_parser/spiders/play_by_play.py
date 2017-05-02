@@ -23,7 +23,7 @@ class PlayByPlaySpider(scrapy.Spider):
         extracted = response.xpath(x_play_by_play).extract()
         cleaned = [remove_tags(x) for x in extracted if x != '<td>\xa0</td>']
         linked = [cleaned[i]+cleaned[i-1] for i in range(len(cleaned)) if i % 2 == 0]
-        actions = self.remove_whitespaces(linked)[2:] #first two play are always empty => "10:00"
+        actions = self.remove_whitespaces(linked)[2:] #first two plays are always empty => "10:00"
         regex = re.compile("\d{2}:\d{2}")
         for action in actions:
             time = regex.search(action).group()
