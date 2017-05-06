@@ -11,7 +11,9 @@ class StartingLineupTest(unittest.TestCase):
         self.maxDiff = None
 
     def test_parse(self):
-        results = self.spider.parse(fake_response_from_file('samples/torun_wloclawek.html'))
+        results = self.spider.parse(
+            fake_response_from_file('samples/torun_wloclawek.html')
+        )
         expected = {
             "team":"away",
             "time":"09:42",
