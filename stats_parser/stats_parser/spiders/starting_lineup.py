@@ -1,5 +1,7 @@
 import scrapy
-from stats_parser.spiders.xpaths import x_teams_name, x_starting_players, x_game_tables, x_bench_players
+from stats_parser.spiders.xpaths import (
+    x_bench_players, x_game_tables, x_starting_players, x_teams_name
+)
 
 class StartingLineupSpider(scrapy.Spider):
     name = "starting_lineup"
@@ -11,7 +13,8 @@ class StartingLineupSpider(scrapy.Spider):
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
-    def remove_whitespaces(self, string):
+    @staticmethod
+    def remove_whitespaces(string):
         result = list(map(str.split, string))
         result = [' '.join(x) for x in result]
         return result
@@ -26,24 +29,25 @@ class StartingLineupSpider(scrapy.Spider):
         if len(game_tables) != 2:
             raise ValueError("Number of game tables is incorrect")
 
-        teamA_starting = game_tables[0].xpath(x_starting_players).extract()
-        teamB_starting = game_tables[1].xpath(x_starting_players).extract()
-        teamA_starting = self.remove_whitespaces(teamA_starting)
-        teamB_starting = self.remove_whitespaces(teamB_starting)
-        if len(teamA_starting) != 5 or len(teamB_starting) != 5:
+        home_team_starting = game_tables[0].xpath(x_starting_players).extract()
+        away_team_starting = game_tables[1].xpath(x_starting_players).extract()
+        home_team_starting = self.remove_whitespaces(home_team_starting)
+        away_team_starting = self.remove_whitespaces(away_team_starting)
+        if len(home_team_starting) != 5 or len(away_team_starting) != 5:
             raise ValueError("One of starting fives has a incorrect number of players")
 
-        teamA_bench = game_tables[0].xpath(x_bench_players).extract()
-        teamB_bench = game_tables[1].xpath(x_bench_players).extract()
-        teamA_bench = self.remove_whitespaces(teamA_bench)
-        teamB_bench = self.remove_whitespaces(teamB_bench)
+        home_team_bench = game_tables[0].xpath(x_bench_players).extract()
+        away_team_bench = game_tables[1].xpath(x_bench_players).extract()
+        home_team_bench = self.remove_whitespaces(home_team_bench)
+        away_team_bench = self.remove_whitespaces(away_team_bench)
 
-        return {teams[0]:{
-                    "starting":teamA_starting,
-                    "bench":teamA_bench,
-                    },
-                teams[1]:{
-                    "starting":teamB_starting,
-                    "bench":teamB_bench,
-                },
-            }
+        return {
+            teams[0]:{
+                "starting":home_team_starting,
+                "bench":home_team_bench,
+            },
+            teams[1]:{
+                "starting":away_team_starting,
+                "bench":away_team_bench,
+            },
+        }
