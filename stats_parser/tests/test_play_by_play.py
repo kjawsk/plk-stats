@@ -16,7 +16,7 @@ class StartingLineupTest(unittest.TestCase):
             fake_response_from_file('samples/torun_wloclawek.html')
         )
 
-        path = "tests/responses/samples/play_by_play_output.json"
+        path = "tests/responses/samples/play_by_play.txt"
         with open(path) as plays:
             for play in plays:
                 result = next(results)
