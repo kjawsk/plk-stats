@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 stats_parser/tests/responses/samples/
+*.json
 
 # C extensions
 *.so
