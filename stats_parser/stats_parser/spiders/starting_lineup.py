@@ -1,3 +1,7 @@
+"""This is a module spider for scraping starting fives
+TODO: Refactoring with item loaders and processors; docstrings for refacored method
+"""
+
 import scrapy
 from stats_parser.spiders.xpaths import (
     x_bench_players, x_game_tables, x_starting_players, x_teams_name

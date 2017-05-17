@@ -1,3 +1,7 @@
+"""This is a module spider for scraping each play from matches
+TODO: Refactoring with item loaders and processors; docstrings for refacored method
+"""
+
 import re
 import scrapy
 
