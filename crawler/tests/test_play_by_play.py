@@ -2,7 +2,7 @@
 
 import unittest
 import ast
-from stats_parser.spiders.play_by_play import PlayByPlaySpider
+from crawler.spiders.play_by_play import PlayByPlaySpider
 from responses import fake_response_from_file
 
 class StartingLineupTest(unittest.TestCase):

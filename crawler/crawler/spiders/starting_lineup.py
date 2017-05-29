@@ -4,8 +4,8 @@ TODO: Refactoring with item loaders and processors; docstrings for refacored met
 
 import scrapy
 from scrapy.loader import ItemLoader
-from stats_parser.items import MatchItem
-from stats_parser.spiders.xpaths import (
+from crawler.items import MatchItem
+from crawler.spiders.xpaths import (
      x_home_team_name, x_away_team_name, x_home_s5, x_home_bench, x_away_s5, x_away_bench, x_date
 )
 

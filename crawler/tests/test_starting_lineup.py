@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from stats_parser.spiders.starting_lineup import StartingLineupSpider
+from crawler.spiders.starting_lineup import StartingLineupSpider
 from responses import fake_response_from_file
 
 class StartingLineupTest(unittest.TestCase):

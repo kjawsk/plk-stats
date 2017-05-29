@@ -6,7 +6,7 @@ import re
 import scrapy
 
 from w3lib.html import remove_tags
-from stats_parser.spiders.xpaths import x_play_by_play
+from crawler.spiders.xpaths import x_play_by_play
 
 class PlayByPlaySpider(scrapy.Spider):
     name = "play_by_play"
