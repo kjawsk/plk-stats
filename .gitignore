@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-stats_parser/tests/responses/samples/
+crawler/tests/responses/samples/
 *.json
 
 # C extensions
