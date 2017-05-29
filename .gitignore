@@ -10,7 +10,7 @@ stats_parser/tests/responses/samples/
 
 # Distribution / packaging
 .Python
-env/
+.env/
 build/
 develop-eggs/
 dist/
