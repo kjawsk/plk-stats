@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 crawler/tests/responses/samples/
 *.json
+*.sqlite3
 
 # C extensions
 *.so
