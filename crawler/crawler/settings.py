@@ -14,6 +14,14 @@ BOT_NAME = 'crawler'
 SPIDER_MODULES = ['crawler.spiders']
 NEWSPIDER_MODULE = 'crawler.spiders'
 
+import sys
+sys.path.append('/home/projects/plkStats/page')
+
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'page.settings'
+
+import django
+django.setup()
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'crawler (+http://www.yourdomain.com)'
