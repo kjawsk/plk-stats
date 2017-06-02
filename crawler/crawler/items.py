@@ -8,6 +8,9 @@
 import scrapy
 import re
 
+from scrapy_djangoitem import DjangoItem
+from stats.models import Team
+
 def remove_whitespaces(buff):
     result = list(map(str.split, buff))
     result = [' '.join(x) for x in result]
@@ -28,3 +31,7 @@ class MatchItem(scrapy.Item):
 class ActionItem(scrapy.Item):
     action_type = scrapy.Field(output_processor=remove_whitespaces)
     time = scrapy.Field(output_processor=remove_whitespaces)
+
+
+class TeamItem(DjangoItem):
+    django_model = Team
