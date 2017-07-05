@@ -15,7 +15,7 @@ SPIDER_MODULES = ['crawler.spiders']
 NEWSPIDER_MODULE = 'crawler.spiders'
 
 import sys
-sys.path.append('/home/projects/plkStats/page')
+sys.path.append('/home/karol/Projects/plkStats/page/')
 
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'page.settings'
