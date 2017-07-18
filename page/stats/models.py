@@ -3,12 +3,21 @@ from django.db import models
 class Team(models.Model):
     name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.name
+
 class Player(models.Model):
     name = models.CharField(max_length=100)
     team_id = models.ForeignKey(Team)
 
+    def __str__(self):
+        return self.name
+
 class Action_Type(models.Model):
     name = models.CharField(max_length=5)
+
+    def __str__(self):
+        return self.name
 
 class Match(models.Model):
     home_team = models.ForeignKey(Team, related_name='match_home_team')
