@@ -5,6 +5,9 @@ __pycache__/
 crawler/tests/responses/samples/
 *.json
 *.sqlite3
+crawler/crawler/sensitive.py
+page/page/sensitive.py
+page/database_filler.py
 
 # C extensions
 *.so
