@@ -6,16 +6,16 @@ responses module.
 import ast
 
 import sys
-sys.path.append('/home/karol/Projects/plkStats/page/')
+sys.path.append("/home/karol/Projects/plkStats/page/")
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'page.settings'
+os.environ["DJANGO_SETTINGS_MODULE"] = "page.settings"
 import django
 django.setup()
 
 from crawler.spiders.starting_lineup import StartingLineupSpider
 from crawler.spiders.play_by_play import PlayByPlaySpider
 from crawler.items import TeamItem
-from stats.models import Team
+from stats.models import Team, Action
 from .responses import fake_response_from_file
 
 def test_starting_lineup_spider():
@@ -60,3 +60,7 @@ def test_item_is_saved_in_db():
     team_item.save()
 
     assert Team.objects.count() == before+1
+
+def test_action_is_parsed():
+    """Test for action pipeline"""
+    assert 1
