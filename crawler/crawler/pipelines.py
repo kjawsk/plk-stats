@@ -10,13 +10,8 @@ from stats.models import Team, Player, Action_Type, Match, Action
 
 class StatsParserPipeline(object):
     def process_item(self, item, spider):
-        try:
-            # first letter of name, dot and space are omitted by [3:]
-            player_name = re.match(r"\w\.+\s+['A-Za-z]+", item["action"]).group()[3:]
-        except:
-            player_name = None
-
-        if "celny" in item["action"] and "2 pkt" in item["action"] and player_name:
+        if "celny" in item["action"] and "2 pkt" in item["action"] and "niecelny" not in item["action"]:
+            player_name = re.match(r"\w\.+\s+[A-Za-zĄ-Źą-ź]+", item["action"]).group()
             action = Action(
                 match_id=Match.objects.first(),
                 action_type_id=Action_Type.objects.get(name="C2PKT"),
