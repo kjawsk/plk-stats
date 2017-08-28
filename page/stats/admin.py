@@ -27,6 +27,24 @@ class MatchAdminSite(admin.ModelAdmin):
 
 class ActionAdminSite(admin.ModelAdmin):
     model = Action
+    list_display = (
+        'get_player_name',
+        'get_action_name',
+        'get_time',
+    )
+
+    def get_player_name(self, obj):
+        return obj.player_id.name
+
+    def get_action_name(self, obj):
+        return obj.action_type_id.name
+
+    def get_time(self, obj):
+        return obj.time.strftime("%H:%M")
+
+    get_action_name.short_description = 'Action'
+    get_player_name.short_description = 'Player'
+    get_time.short_description = 'Time'
 
 admin.site.register(Team, TeamAdminSite)
 admin.site.register(Player, PlayerAdminSite)
