@@ -1,13 +1,16 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+#
 crawler/tests/responses/samples/
 *.json
 *.sqlite3
 crawler/crawler/sensitive.py
 page/page/sensitive.py
 page/database_filler.py
+crawler/logs/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
 # C extensions
 *.so
