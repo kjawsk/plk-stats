@@ -8,7 +8,7 @@ class Team(models.Model):
 
 class Player(models.Model):
     name = models.CharField(max_length=100)
-    team_id = models.ForeignKey(Team)
+    team = models.ForeignKey(Team)
 
     def __str__(self):
         return self.name
@@ -25,7 +25,7 @@ class Match(models.Model):
     date = models.DateField(auto_now=False)
 
 class Action(models.Model):
-    match_id = models.ForeignKey(Match)
-    action_type_id = models.ForeignKey(Action_Type)
-    player_id = models.ForeignKey(Player)
+    match = models.ForeignKey(Match)
+    action_type = models.ForeignKey(Action_Type)
+    player = models.ForeignKey(Player)
     time = models.TimeField(auto_now=False)

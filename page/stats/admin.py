@@ -14,7 +14,7 @@ class PlayerAdminSite(admin.ModelAdmin):
     )
 
     def get_team_name(self, obj):
-        return obj.team_id.name
+        return obj.team.name
 
     get_team_name.short_description = 'Team'
 
@@ -34,10 +34,10 @@ class ActionAdminSite(admin.ModelAdmin):
     )
 
     def get_player_name(self, obj):
-        return obj.player_id.name
+        return obj.player.name
 
     def get_action_name(self, obj):
-        return obj.action_type_id.name
+        return obj.action_type.name
 
     def get_time(self, obj):
         return obj.time.strftime("%H:%M")
