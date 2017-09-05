@@ -40,7 +40,7 @@ class ActionAdminSite(admin.ModelAdmin):
         return obj.action_type.name
 
     def get_time(self, obj):
-        return obj.time.strftime("%H:%M")
+        return obj.time.strftime("%M:%S")
 
     get_action_name.short_description = 'Action'
     get_player_name.short_description = 'Player'

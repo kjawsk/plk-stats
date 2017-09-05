@@ -29,7 +29,6 @@ class ActionsSpider(scrapy.Spider):
         """Provides list of matches to scrap"""
         urls = [
             "http://plk.pl/mecz/45043/polski-cukier-torun---anwil-wloclawek.html",
-            # "http://plk.pl/mecz/44792/miasto-szkla-krosno---rosa-radom.html"
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
@@ -45,20 +44,23 @@ class ActionsSpider(scrapy.Spider):
 
     def actions(self):
         """Method to scrap actions from response. Return a list of all action from match in form:
-            ["9:45 N. Player shoot for 2 pkt"] for home team actions or
-            ["N. Player shoot for 2 pkt 9:45"] for away team actions
+            ["1 9:45 N. Player shoot for 2 pkt"] for home team actions from first quart or
+            ["2 N. Player shoot for 2 pkt 9:45"] for away team actions from second quart
         Logic flow:
         1. get actions from specified quart
         2. remove tags from actions and ommit no-brake space sign
-        3. link each action with time of this action to one list item
+        3. link each action with time of this action to one list item. Number of quart is added
+        at the beginning of each action
         4. remove extra whitespaces from actions and cut it as needed
         """
         result = []
         for quart in range(1, 5):
             xpath = x_play_by_play[quart]
             extracted = self.response.xpath(xpath).extract()
-            cleaned = [remove_tags(x) for x in extracted if x != "<td>\xa0</td>"]
-            linked = [cleaned[i]+cleaned[i-1] for i in range(len(cleaned)) if i % 2 == 0]
+            cleaned = [remove_tags(i) for i in extracted if i != "<td>\xa0</td>"]
+            linked = [
+                str(quart) + " " + cleaned[i]+cleaned[i-1] for i in range(len(cleaned)) if i % 2 == 0
+            ]
             #for 1st quart first two plays are always empty => "10:00"
             #for 2nd-4th quart first play are always empty => "10:00"
             offset = 2 if quart == 1 else 1
@@ -127,6 +129,15 @@ class ActionsSpider(scrapy.Spider):
         else:
             return result
 
+    def time(self, action):
+        """Used to convert time of action in quart to time from the match beginning"""
+        time_string = re.search(r"\d{2}:\d{2}", action).group()
+        time_obj = datetime.datetime.strptime(time_string, '%M:%S').time()
+        #first sign of each action is quart number; look at actions method
+        minute = 9 - time_obj.minute + (int(action[0])-1) * 10
+        second = 60 - time_obj.second if time_obj.second != 0 else 0
+        return datetime.time(hour=0, minute=minute, second=second)
+
     def parse(self, response):
         """Used to parse response. For each extracted action, which has been found in
         actions_mapper, action object is created and stored in db"""
@@ -139,5 +150,6 @@ class ActionsSpider(scrapy.Spider):
                     item["match"] = match
                     item["action_type"] = self.action_type(action_type)
                     item["player"] = self.player(action)
-                    item["time"] = re.search(r"\d{2}:\d{2}", action).group()
-                    item.save()
+                    item["time"] = self.time(action)
+                    res = item.save()
+                    self.logger.info("%s" % (res))

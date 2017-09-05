@@ -24,8 +24,14 @@ class Match(models.Model):
     away_team = models.ForeignKey(Team, related_name='match_away_team')
     date = models.DateField(auto_now=False)
 
+    def __str__(self):
+        return ("%s: %s - %s") % (self.date, self.home_team.name, self.away_team.name)
+
 class Action(models.Model):
     match = models.ForeignKey(Match)
     action_type = models.ForeignKey(Action_Type)
     player = models.ForeignKey(Player)
     time = models.TimeField(auto_now=False)
+
+    def __str__(self):
+        return ("%s: %s %s") % (self.time, self.player.name, self.action_type.name)
