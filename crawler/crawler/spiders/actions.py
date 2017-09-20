@@ -6,9 +6,10 @@ import scrapy
 import datetime
 
 from w3lib.html import remove_tags
-from crawler.spiders.xpaths import x_home_team_name, x_away_team_name, x_date, x_play_by_play
+from crawler.spiders.xpaths import x_home_team_name, x_away_team_name, x_date, x_play_by_play, \
+    x_home_team_2pkt_shoots, x_away_team_2pkt_shoots
 from crawler.items import ActionItem, MatchItem
-from stats.models import Action_Type, Player, Team
+from stats.models import Action, Action_Type, Player, Team
 
 class ActionsSpider(scrapy.Spider):
     """Class for spiders. Responsible for extracting actions from matches specifed in url defined in
@@ -16,14 +17,14 @@ class ActionsSpider(scrapy.Spider):
 
     name = "actions"
     actions_mapper = {
-        "C1PKT" : [" celny ", "2 pkt"],
-        "N1PKT" : [" niecelny ", "2 pkt"],
+        # "C1PKT" : [" celny ", "2 pkt"],
+        # "N1PKT" : [" niecelny ", "2 pkt"],
         "C2PKT" : [" celny ", "2 pkt"],
-        "N2PKT" : [" niecelny ", "2 pkt"],
-        "Z2PKT" : [" zablokowany ", "2 pkt"],
-        "C3PKT" : [" celny ", "3 pkt"],
-        "N3PKT" : [" niecelny ", "3 pkt"],
-        "Z3PKT" : [" zablokowany ", "3 pkt"],
+        # "N2PKT" : [" niecelny ", "2 pkt"],
+        # "Z2PKT" : [" zablokowany ", "2 pkt"],
+        # "C3PKT" : [" celny ", "3 pkt"],
+        # "N3PKT" : [" niecelny ", "3 pkt"],
+        # "Z3PKT" : [" zablokowany ", "3 pkt"],
     }
     response = None
 
@@ -140,6 +141,36 @@ class ActionsSpider(scrapy.Spider):
         second = 59 - time_obj.second
         return datetime.time(hour=0, minute=minute, second=second)
 
+    def selftest(self, match):
+        extracted = self.response.xpath(x_home_team_2pkt_shoots).extract()
+        home_team_shoots = re.findall(r"\d+/\d+", "".join(extracted))
+        if not home_team_shoots and home_team_shoots != 1:
+            self.logger.critical("%s %s" % (extracted, home_team_shoots))
+            return
+        home_c2pkt = home_team_shoots[0].split("/")[0]
+        home_n2pkt = home_team_shoots[0].split("/")[1]
+
+        extracted = self.response.xpath(x_away_team_2pkt_shoots).extract()
+        away_team_shoots = re.findall(r"\d+/\d+", "".join(extracted))
+        if not away_team_shoots and away_team_shoots != 1:
+            self.logger.critical("%s %s" % (extracted, away_team_shoots))
+            return
+        away_c2pkt = away_team_shoots[0].split("/")[0]
+        away_n2pkt = away_team_shoots[0].split("/")[1]
+
+        expected_c2pkt = Action.objects.filter(match=match, action_type__name="C2PKT").count()
+        expected_n2pkt = Action.objects.filter(match=match, action_type__name="N2PKT").count()
+
+        if int(home_c2pkt)+int(away_c2pkt) != expected_c2pkt:
+            self.logger.critical("C2PKT: Fetched data are invalid!")
+
+        if int(home_n2pkt)+int(away_n2pkt) != expected_n2pkt:
+            self.logger.critical("N2PKT: Fetched data are invalid!")
+
+        self.logger.info("C2PKT: %s EC2PKT: %s" % (int(home_c2pkt)+int(away_c2pkt), expected_c2pkt))
+        self.logger.info("N2PKT: %s EN2PKT: %s" % (int(home_n2pkt)+int(away_n2pkt), expected_n2pkt))
+
+
     def parse(self, response):
         """Used to parse response. For each extracted action, which has been found in
         actions_mapper, action object is created and stored in db"""
@@ -155,3 +186,4 @@ class ActionsSpider(scrapy.Spider):
                     item["time"] = self.time(action)
                     res = item.save()
                     self.logger.info("%s" % (res))
+        self.selftest(match)

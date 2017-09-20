@@ -34,3 +34,6 @@ x_play_by_play = {
     2: x_play_by_play_q2,
     3: x_play_by_play_q3,
     4: x_play_by_play_q4}
+
+x_home_team_2pkt_shoots = "//div[@id='tabpagesmatch']/div[1]/table[1]/tbody/tr[14]/td[4]"
+x_away_team_2pkt_shoots = "//div[@id='tabpagesmatch']/div[1]/table[2]/tbody/tr[14]/td[4]"
