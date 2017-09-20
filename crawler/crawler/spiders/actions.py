@@ -16,6 +16,8 @@ class ActionsSpider(scrapy.Spider):
 
     name = "actions"
     actions_mapper = {
+        "C1PKT" : [" celny ", "2 pkt"],
+        "N1PKT" : [" niecelny ", "2 pkt"],
         "C2PKT" : [" celny ", "2 pkt"],
         "N2PKT" : [" niecelny ", "2 pkt"],
         "Z2PKT" : [" zablokowany ", "2 pkt"],
@@ -135,7 +137,7 @@ class ActionsSpider(scrapy.Spider):
         time_obj = datetime.datetime.strptime(time_string, '%M:%S').time()
         #first sign of each action is quart number; look at actions method
         minute = 9 - time_obj.minute + (int(action[0])-1) * 10
-        second = 60 - time_obj.second if time_obj.second != 0 else 0
+        second = 59 - time_obj.second
         return datetime.time(hour=0, minute=minute, second=second)
 
     def parse(self, response):
