@@ -143,20 +143,20 @@ class ActionsSpider(scrapy.Spider):
 
     def selftest(self, match):
         extracted = self.response.xpath(x_home_team_2pkt_shoots).extract()
-        home_team_shoots = re.findall(r"\d+/\d+", "".join(extracted))
-        if not home_team_shoots and home_team_shoots != 1:
+        home_team_shoots = re.search(r"\d+/\d+", "".join(extracted)).group()
+        if not home_team_shoots:
             self.logger.critical("%s %s" % (extracted, home_team_shoots))
             return
-        home_c2pkt = home_team_shoots[0].split("/")[0]
-        home_n2pkt = home_team_shoots[0].split("/")[1]
+        home_c2pkt = home_team_shoots.split("/")[0]
+        home_n2pkt = home_team_shoots.split("/")[1]
 
         extracted = self.response.xpath(x_away_team_2pkt_shoots).extract()
-        away_team_shoots = re.findall(r"\d+/\d+", "".join(extracted))
-        if not away_team_shoots and away_team_shoots != 1:
+        away_team_shoots = re.search(r"\d+/\d+", "".join(extracted)).group()
+        if not away_team_shoots:
             self.logger.critical("%s %s" % (extracted, away_team_shoots))
             return
-        away_c2pkt = away_team_shoots[0].split("/")[0]
-        away_n2pkt = away_team_shoots[0].split("/")[1]
+        away_c2pkt = away_team_shoots.split("/")[0]
+        away_n2pkt = away_team_shoots.split("/")[1]
 
         expected_c2pkt = Action.objects.filter(match=match, action_type__name="C2PKT").count()
         expected_n2pkt = Action.objects.filter(match=match, action_type__name="N2PKT").count()
