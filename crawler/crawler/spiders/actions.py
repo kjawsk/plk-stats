@@ -6,10 +6,11 @@ import scrapy
 import datetime
 
 from w3lib.html import remove_tags
-from crawler.spiders.xpaths import x_home_team_name, x_away_team_name, x_date, x_play_by_play, \
-    x_home_team_2pkt_shoots, x_away_team_2pkt_shoots
 from crawler.items import ActionItem, MatchItem
 from stats.models import Action, Action_Type, Player, Team
+from crawler.utils.selftest import SelfTest
+from crawler.utils.xpaths import x_home_team_name, x_away_team_name, x_date, x_play_by_play, \
+    x_home_team_2pkt_throws, x_away_team_2pkt_throws
 
 class ActionsSpider(scrapy.Spider):
     """Class for spiders. Responsible for extracting actions from matches specifed in url defined in
@@ -17,16 +18,17 @@ class ActionsSpider(scrapy.Spider):
 
     name = "actions"
     actions_mapper = {
-        # "C1PKT" : [" celny ", "2 pkt"],
-        # "N1PKT" : [" niecelny ", "2 pkt"],
+        "C1PKT" : [" celny ", "2 pkt"],
+        "N1PKT" : [" niecelny ", "2 pkt"],
         "C2PKT" : [" celny ", "2 pkt"],
-        # "N2PKT" : [" niecelny ", "2 pkt"],
-        # "Z2PKT" : [" zablokowany ", "2 pkt"],
-        # "C3PKT" : [" celny ", "3 pkt"],
-        # "N3PKT" : [" niecelny ", "3 pkt"],
-        # "Z3PKT" : [" zablokowany ", "3 pkt"],
+        "N2PKT" : [" niecelny ", "2 pkt"],
+        "Z2PKT" : [" zablokowany ", "2 pkt"],
+        "C3PKT" : [" celny ", "3 pkt"],
+        "N3PKT" : [" niecelny ", "3 pkt"],
+        "Z3PKT" : [" zablokowany ", "3 pkt"],
     }
     response = None
+
 
     def start_requests(self):
         """Provides list of matches to scrap"""
@@ -47,8 +49,8 @@ class ActionsSpider(scrapy.Spider):
 
     def actions(self):
         """Method to scrap actions from response. Return a list of all action from match in form:
-            ["1 9:45 N. Player shoot for 2 pkt"] for home team actions from first quart or
-            ["2 N. Player shoot for 2 pkt 9:45"] for away team actions from second quart
+            ["1 9:45 N. Player throw for 2 pkt"] for home team actions from first quart or
+            ["2 N. Player throw for 2 pkt 9:45"] for away team actions from second quart
         Logic flow:
         1. get actions from specified quart
         2. remove tags from actions and ommit no-brake space sign
@@ -74,12 +76,14 @@ class ActionsSpider(scrapy.Spider):
                 result += self.remove_extra_whitespaces(linked)[offset:]
         return result
 
+
     def date(self):
         """Used to get date of match. It is extracted from response"""
         date = self.response.xpath(x_date).extract()
         date = re.search(r'(\d{2}.\d{2}.\d{4})', date[2]).group(1)
         date = datetime.datetime.strptime(date, "%d.%m.%Y").strftime("%Y-%m-%d")
         return date
+
 
     def add_match(self):
         """Used to add match and return it, based on extracted team names and date, if team does
@@ -103,6 +107,7 @@ class ActionsSpider(scrapy.Spider):
             match = match.save()
             return match
 
+
     def player(self, action):
         """Used to get player object from db based on name, if player does not exist in db
         error is logged and exception is reraised"""
@@ -118,6 +123,7 @@ class ActionsSpider(scrapy.Spider):
         else:
             return result
 
+
     def action_type(self, name):
         """Used to get action type object from db based on name, if name does not exist in db
         error is logged and exception is reraised"""
@@ -132,6 +138,7 @@ class ActionsSpider(scrapy.Spider):
         else:
             return result
 
+
     def time(self, action):
         """Used to convert time of action in quart to time from the match beginning"""
         time_string = re.search(r"\d{2}:\d{2}", action).group()
@@ -140,35 +147,6 @@ class ActionsSpider(scrapy.Spider):
         minute = 9 - time_obj.minute + (int(action[0])-1) * 10
         second = 59 - time_obj.second
         return datetime.time(hour=0, minute=minute, second=second)
-
-    def selftest(self, match):
-        extracted = self.response.xpath(x_home_team_2pkt_shoots).extract()
-        home_team_shoots = re.search(r"\d+/\d+", "".join(extracted)).group()
-        if not home_team_shoots:
-            self.logger.critical("%s %s" % (extracted, home_team_shoots))
-            return
-        home_c2pkt = home_team_shoots.split("/")[0]
-        home_n2pkt = home_team_shoots.split("/")[1]
-
-        extracted = self.response.xpath(x_away_team_2pkt_shoots).extract()
-        away_team_shoots = re.search(r"\d+/\d+", "".join(extracted)).group()
-        if not away_team_shoots:
-            self.logger.critical("%s %s" % (extracted, away_team_shoots))
-            return
-        away_c2pkt = away_team_shoots.split("/")[0]
-        away_n2pkt = away_team_shoots.split("/")[1]
-
-        expected_c2pkt = Action.objects.filter(match=match, action_type__name="C2PKT").count()
-        expected_n2pkt = Action.objects.filter(match=match, action_type__name="N2PKT").count()
-
-        if int(home_c2pkt)+int(away_c2pkt) != expected_c2pkt:
-            self.logger.critical("C2PKT: Fetched data are invalid!")
-
-        if int(home_n2pkt)+int(away_n2pkt) != expected_n2pkt:
-            self.logger.critical("N2PKT: Fetched data are invalid!")
-
-        self.logger.info("C2PKT: %s EC2PKT: %s" % (int(home_c2pkt)+int(away_c2pkt), expected_c2pkt))
-        self.logger.info("N2PKT: %s EN2PKT: %s" % (int(home_n2pkt)+int(away_n2pkt), expected_n2pkt))
 
 
     def parse(self, response):
@@ -186,4 +164,4 @@ class ActionsSpider(scrapy.Spider):
                     item["time"] = self.time(action)
                     res = item.save()
                     self.logger.info("%s" % (res))
-        self.selftest(match)
+        SelfTest().run(response, match)
