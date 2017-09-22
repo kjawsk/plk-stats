@@ -1,6 +1,6 @@
 """This module is implementation of self test functionallity. Each match website constains
-table with statistics with number of shoots, rebounds, assists etc. It could be used to make
-a test to check if data stored in database by spider is in line with offical statistics
+table with summary statistics for each team. It could be used to make a test to check if data
+stored in database by spider is in line with offical statistics
 """
 
 import re
