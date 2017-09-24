@@ -29,15 +29,13 @@ class SelfTest:
         if not throws:
             logger.critical("Throws not found in: %s" % (extracted))
             raise ValueError
-        succ = throws.split("/")[0]
-        all_ = throws.split("/")[1]
+        succ = int(throws.split("/")[0])
+        all_ = int(throws.split("/")[1])
         return self.Throws(succ=succ, all=all_)
 
     def run(self):
         """Logic flow:
-        1. Get number of successful throws from stats table
-        2. Get number of all throws from stats table
-        3. Compare numbers from 1. and 2. with data stored in database by spider
+        TBD
         """
         logger = logging.getLogger('selftest')
         logger.debug("Seltest started")
@@ -45,21 +43,42 @@ class SelfTest:
         home_2pkt_throws = self._extract_throws(x_home_team_2pkt_throws)
         away_2pkt_throws = self._extract_throws(x_away_team_2pkt_throws)
 
-        expected_succ_2pkt = Action.objects.filter(
+        expected_home_succ_2pkt = Action.objects.filter(
             match=self.match,
+            player__team=self.match.home_team,
             action_type__name="C2PKT").count()
-        expected_all_2pkt = Action.objects.filter(
-            Q(action_type__name="N2PKT") | Q(action_type__name="Z2PKT"),
-            match=self.match).count()
+        expected_home_all_2pkt = Action.objects.filter(
+            Q(action_type__name="N2PKT")|Q(action_type__name="Z2PKT")|Q(action_type__name="C2PKT"),
+            match=self.match,
+            player__team=self.match.home_team).count()
 
-        all_success_throws = int(home_2pkt_throws.succ)+int(away_2pkt_throws.succ)
-        if all_success_throws != expected_succ_2pkt:
-            logger.critical("Success 2 pkt throws - data is inconsistent with stats")
+        if home_2pkt_throws.succ != expected_home_succ_2pkt:
+            logger.critical(
+                "Success 2 pkt throws of home team - data is inconsistent with stats: %s %s" %
+                (home_2pkt_throws.succ, expected_home_succ_2pkt))
 
-        all_no_success_throws = \
-            int(home_2pkt_throws.all)-int(home_2pkt_throws.succ)+\
-            int(away_2pkt_throws.all)-int(away_2pkt_throws.succ)
-        if all_no_success_throws != expected_all_2pkt:
-            logger.critical("No success 2 pkt throws - data is inconsistent with stats")
+        if home_2pkt_throws.all != expected_home_all_2pkt:
+            logger.critical(
+                "All 2 pkt throws of home team - data is inconsistent with stats %s %s" %
+                (home_2pkt_throws.all, expected_home_all_2pkt))
+
+        expected_away_succ_2pkt = Action.objects.filter(
+            match=self.match,
+            player__team=self.match.away_team,
+            action_type__name="C2PKT").count()
+        expected_away_all_2pkt = Action.objects.filter(
+            Q(action_type__name="N2PKT")|Q(action_type__name="Z2PKT")|Q(action_type__name="C2PKT"),
+            match=self.match,
+            player__team=self.match.away_team).count()
+
+        if away_2pkt_throws.succ != expected_away_succ_2pkt:
+            logger.critical(
+                "Success 2 pkt throws of away team - data is inconsistent with stats %s %s" %
+                (away_2pkt_throws.succ, expected_away_succ_2pkt))
+
+        if away_2pkt_throws.all != expected_away_all_2pkt:
+            logger.critical(
+                "All 2 pkt throws of away team - data is inconsistent with stats %s %s" %
+                (away_2pkt_throws.all, expected_away_all_2pkt))
 
         logger.debug("Seltest finished")
