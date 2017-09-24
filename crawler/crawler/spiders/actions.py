@@ -8,7 +8,7 @@ import datetime
 from w3lib.html import remove_tags
 from crawler.items import ActionItem, MatchItem
 from stats.models import Action, Action_Type, Player, Team
-from crawler.utils.selftest import SelfTest as selftest
+from crawler.utils.selftest import SelfTest
 from crawler.utils.xpaths import x_home_team_name, x_away_team_name, x_date, x_play_by_play, \
     x_home_team_2pkt_throws, x_away_team_2pkt_throws
 
@@ -18,8 +18,8 @@ class ActionsSpider(scrapy.Spider):
 
     name = "actions"
     actions_mapper = {
-        "C1PKT" : [" celny ", "2 pkt"],
-        "N1PKT" : [" niecelny ", "2 pkt"],
+        "C1PKT" : [" celny ", "1 pkt"],
+        "N1PKT" : [" niecelny ", "1 pkt"],
         "C2PKT" : [" celny ", "2 pkt"],
         "N2PKT" : [" niecelny ", "2 pkt"],
         "Z2PKT" : [" zablokowany ", "2 pkt"],
@@ -164,4 +164,5 @@ class ActionsSpider(scrapy.Spider):
                     item["time"] = self.time(action)
                     res = item.save()
                     self.logger.info("%s" % (res))
-        selftest.run(response, match)
+        selftest = SelfTest(response, match)
+        selftest.run()
