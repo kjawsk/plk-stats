@@ -6,7 +6,7 @@
 # http://doc.scrapy.org/en/latest/topics/items.html
 
 from scrapy_djangoitem import DjangoItem
-from stats.models import Action, Match, Team
+from stats.models import Action, Match, Team, Player
 
 class MatchItem(DjangoItem):
     django_model = Match
@@ -16,3 +16,6 @@ class TeamItem(DjangoItem):
 
 class ActionItem(DjangoItem):
     django_model = Action
+
+class PlayerItem(DjangoItem):
+    django_model = Player

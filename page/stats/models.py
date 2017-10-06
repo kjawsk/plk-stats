@@ -9,6 +9,10 @@ class Team(models.Model):
 class Player(models.Model):
     name = models.CharField(max_length=100)
     team = models.ForeignKey(Team)
+    passport = models.CharField(max_length=30)
+    birth = models.DateField(auto_now=False)
+    height = models.PositiveIntegerField()
+    position = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
