@@ -9,8 +9,7 @@ from w3lib.html import remove_tags
 from crawler.items import ActionItem, MatchItem
 from stats.models import Action, Action_Type, Player, Team
 from crawler.utils.selftest import SelfTest
-from crawler.utils.xpaths import x_home_team_name, x_away_team_name, x_date, x_play_by_play, \
-    x_home_team_2pkt_throws, x_away_team_2pkt_throws
+from crawler.utils.xpaths import x_home_team_name, x_away_team_name, x_date, x_play_by_play
 
 class ActionsSpider(scrapy.Spider):
     """Class for spiders. Responsible for extracting actions from matches specifed in url defined in

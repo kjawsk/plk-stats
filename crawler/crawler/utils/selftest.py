@@ -10,14 +10,12 @@ from collections import namedtuple
 
 from django.db.models import Q
 from stats.models import Action, Action_Type, Player, Team
-from crawler.utils.xpaths import x_home_team_2pkt_throws, x_away_team_2pkt_throws
+from crawler.utils.xpaths import x_stats
 
 class SelfTest:
     """This class is responsible for comparing data fetched by spiders and data from statistics
     tablefrom scraped website
     """
-
-    Throws = namedtuple('Throws', ['succ', 'all'])
 
     def __init__(self, response, match):
         self.match = match
@@ -31,7 +29,7 @@ class SelfTest:
             raise ValueError
         succ = int(throws.split("/")[0])
         all_ = int(throws.split("/")[1])
-        return self.Throws(succ=succ, all=all_)
+        return dict(succ=succ, all=all_)
 
     def run(self):
         """Logic flow:
@@ -40,45 +38,46 @@ class SelfTest:
         logger = logging.getLogger('selftest')
         logger.debug("Seltest started")
 
-        home_2pkt_throws = self._extract_throws(x_home_team_2pkt_throws)
-        away_2pkt_throws = self._extract_throws(x_away_team_2pkt_throws)
-
-        expected_home_succ_2pkt = Action.objects.filter(
+        home_scraped_throws = dict()
+        home_expected_throws = self._extract_throws(x_stats["home"]["2PKT"])
+        home_scraped_throws["succ"] = Action.objects.filter(
+            action_type__name="C2PKT",
             match=self.match,
-            player__team=self.match.home_team,
-            action_type__name="C2PKT").count()
-        expected_home_all_2pkt = Action.objects.filter(
+            player__team=self.match.home_team).count()
+        home_scraped_throws["all"] = Action.objects.filter(
             Q(action_type__name="N2PKT")|Q(action_type__name="Z2PKT")|Q(action_type__name="C2PKT"),
             match=self.match,
             player__team=self.match.home_team).count()
 
-        if home_2pkt_throws.succ != expected_home_succ_2pkt:
+        if home_scraped_throws["succ"] != home_expected_throws["succ"]:
             logger.critical(
                 "Success 2 pkt throws of home team - data is inconsistent with stats: %s %s" %
-                (home_2pkt_throws.succ, expected_home_succ_2pkt))
+                (home_scraped_throws["succ"], home_expected_throws["succ"]))
 
-        if home_2pkt_throws.all != expected_home_all_2pkt:
+        if home_scraped_throws["all"] != home_expected_throws["all"]:
             logger.critical(
                 "All 2 pkt throws of home team - data is inconsistent with stats %s %s" %
-                (home_2pkt_throws.all, expected_home_all_2pkt))
+                (home_scraped_throws["all"], home_expected_throws["all"]))
 
-        expected_away_succ_2pkt = Action.objects.filter(
+        away_scraped_throws = dict()
+        away_expected_throws = self._extract_throws(x_stats["away"]["2PKT"])
+        away_scraped_throws["succ"] = Action.objects.filter(
+            action_type__name="C2PKT",
             match=self.match,
-            player__team=self.match.away_team,
-            action_type__name="C2PKT").count()
-        expected_away_all_2pkt = Action.objects.filter(
+            player__team=self.match.away_team).count()
+        away_scraped_throws["all"] = Action.objects.filter(
             Q(action_type__name="N2PKT")|Q(action_type__name="Z2PKT")|Q(action_type__name="C2PKT"),
             match=self.match,
             player__team=self.match.away_team).count()
 
-        if away_2pkt_throws.succ != expected_away_succ_2pkt:
+        if away_scraped_throws["succ"] != away_expected_throws["succ"]:
             logger.critical(
                 "Success 2 pkt throws of away team - data is inconsistent with stats %s %s" %
-                (away_2pkt_throws.succ, expected_away_succ_2pkt))
+                (away_scraped_throws["succ"], away_expected_throws["succ"]))
 
-        if away_2pkt_throws.all != expected_away_all_2pkt:
+        if away_scraped_throws["all"] != away_expected_throws["all"]:
             logger.critical(
                 "All 2 pkt throws of away team - data is inconsistent with stats %s %s" %
-                (away_2pkt_throws.all, expected_away_all_2pkt))
+                (away_scraped_throws["all"], away_expected_throws["all"]))
 
         logger.debug("Seltest finished")
