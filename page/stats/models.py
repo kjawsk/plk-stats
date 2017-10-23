@@ -17,6 +17,12 @@ class Player(models.Model):
     def __str__(self):
         return self.name
 
+    def short_name(self):
+        forename, surname = self.name.split()
+        if not forename or not surname:
+            raise ValueError
+        return forename[0] + ". " + surname
+
 class Action_Type(models.Model):
     name = models.CharField(max_length=5)
 

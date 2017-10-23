@@ -49,7 +49,7 @@ class PlayersSpider(scrapy.Spider):
         player_rows = [x.split("\n") for x in cleaned]
         for row in player_rows:
             player = PlayerItem(
-                name = row[2].split()[0][0] + ". " + row[2].split()[1],
+                name = row[2],
                 team = team,
                 passport = row[3],
                 birth = datetime.strptime(row[4], "%Y-%m-%d"),
