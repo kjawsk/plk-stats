@@ -34,6 +34,7 @@ class Match(models.Model):
 
 class Action(models.Model):
     match = models.ForeignKey(Match)
+    team = models.ForeignKey(Team)
     action_type = models.ForeignKey(Action_Type)
     player = models.ForeignKey(Player)
     time = models.TimeField(auto_now=False)
