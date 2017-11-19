@@ -19,7 +19,14 @@ class Player(models.Model):
         return self.name
 
 class Action_Type(models.Model):
-    name = models.CharField(max_length=5)
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+
+class Action_Subtype(models.Model):
+    parent = models.ForeignKey(Action_Type)
+    name = models.CharField(max_length=20)
 
     def __str__(self):
         return self.name
@@ -36,6 +43,7 @@ class Action(models.Model):
     match = models.ForeignKey(Match)
     team = models.ForeignKey(Team)
     action_type = models.ForeignKey(Action_Type)
+    action_subtype = models.ForeignKey(Action_Subtype, null=True)
     player = models.ForeignKey(Player)
     time = models.TimeField(auto_now=False)
 

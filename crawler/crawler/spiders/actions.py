@@ -6,7 +6,7 @@ import json
 import datetime;
 
 from crawler.items import ActionItem, MatchItem
-from stats.models import Action, Action_Type, Player, Team
+from stats.models import Action, Action_Type, Action_Subtype, Player, Team
 
 class ActionsSpider(scrapy.Spider):
 
@@ -45,6 +45,22 @@ class ActionsSpider(scrapy.Spider):
             match = match.save()
             return match
 
+    def action_type(self, play):
+        try:
+            action_type = Action_Type.objects.get(name=play['actionType'])
+            action_subtype = Action_Subtype.objects.get(parent=action_type, name=play['subType'])
+        except Action_Subtype.DoesNotExist:
+            self.logger.debug(
+                "\n------\nAction type: %s \nAction subtype: %s\nOne of above does not exist in db"%
+                (play['actionType'], play['subType'])
+            )
+            action_subtype = None
+        finally:
+            return {
+                'type' : action_type,
+                'subtype' : action_subtype,
+            }
+
     def parse(self, response):
         self.data = json.loads(response.body_as_unicode())
         match = self.add_match()
@@ -52,10 +68,12 @@ class ActionsSpider(scrapy.Spider):
         for play in self.data['pbp']:
             if play['actionType'] == '2pt':
                 player_name = play['firstName'] + " " + play['familyName']
+                play_type = self.action_type(play)
                 item = ActionItem()
-                item["match"] = match
-                item["team"] = self.home_team if play['tno'] == 1 else self.away_team
-                item["action_type"] = Action_Type.objects.get(name=play['actionType'])
-                item["player"] = Player.objects.get(name=player_name)
-                item["time"] = play['gt']
+                item['match'] = match
+                item['team'] = self.home_team if play['tno'] == 1 else self.away_team
+                item['action_type'] = play_type['type']
+                item['action_subtype'] = play_type['subtype']
+                item['player'] = Player.objects.get(name=player_name)
+                item['time'] = play['gt']
                 item.save()
