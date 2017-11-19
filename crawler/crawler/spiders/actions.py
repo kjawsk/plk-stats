@@ -51,15 +51,20 @@ class ActionsSpider(scrapy.Spider):
             action_subtype = Action_Subtype.objects.get(parent=action_type, name=play['subType'])
         except Action_Subtype.DoesNotExist:
             self.logger.debug(
-                "\n------\nAction type: %s \nAction subtype: %s\nOne of above does not exist in db"%
-                (play['actionType'], play['subType'])
+                "\n------\nAction subtype does not exist in db: %s\n"%
+                (play['subType'])
             )
             action_subtype = None
-        finally:
-            return {
-                'type' : action_type,
-                'subtype' : action_subtype,
-            }
+        except Action_Type.DoesNotExist:
+            self.logger.critical(
+                "\n------\nAction type does not exist in db: %s\n"%
+                (play['actionType'])
+            )
+            raise
+        return {
+            'type' : action_type,
+            'subtype' : action_subtype,
+        }
 
     def parse(self, response):
         self.data = json.loads(response.body_as_unicode())
