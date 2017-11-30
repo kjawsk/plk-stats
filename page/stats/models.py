@@ -35,6 +35,7 @@ class Match(models.Model):
     home_team = models.ForeignKey(Team, related_name='match_home_team')
     away_team = models.ForeignKey(Team, related_name='match_away_team')
     date = models.DateField(auto_now=False)
+    fiba_id = models.IntegerField()
 
     def __str__(self):
         return ("%s: %s - %s") % (self.date, self.home_team.name, self.away_team.name)
