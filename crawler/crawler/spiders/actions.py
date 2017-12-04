@@ -21,7 +21,7 @@ class ActionsSpider(scrapy.Spider):
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
-    def match_for_response(self, response):
+    def match_from_response(self, response):
         fiba_id = re.search(r'\d+', response.url).group()
         if fiba_id is not None:
             try:
@@ -62,7 +62,7 @@ class ActionsSpider(scrapy.Spider):
 
     def parse(self, response):
         self.data = json.loads(response.body_as_unicode())
-        match = self.match_for_response(response)
+        match = self.match_from_response(response)
 
         for play in self.data['pbp']:
             if play['actionType'] == '2pt':
@@ -74,5 +74,6 @@ class ActionsSpider(scrapy.Spider):
                 item['action_type'] = play_type['type']
                 item['action_subtype'] = play_type['subtype']
                 item['player'] = Player.objects.get(name=player_name)
-                item['time'] = play['gt']
+                item['time'] = datetime.datetime.strptime(play['gt'], '%M:%S').time()
+                ## TODO add period field
                 item.save()
