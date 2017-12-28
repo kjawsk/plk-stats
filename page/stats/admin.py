@@ -24,7 +24,7 @@ class ActionTypeAdminSite(admin.ModelAdmin):
 
 class ActionSubtypeAdminSite(admin.ModelAdmin):
     model = Action_Subtype
-    list_display = ('name',)
+    list_display = ('name', )
 
 class MatchAdminSite(admin.ModelAdmin):
     model = Match

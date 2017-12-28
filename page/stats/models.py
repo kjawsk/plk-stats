@@ -25,7 +25,6 @@ class Action_Type(models.Model):
         return self.name
 
 class Action_Subtype(models.Model):
-    parent = models.ForeignKey(Action_Type)
     name = models.CharField(max_length=20)
 
     def __str__(self):

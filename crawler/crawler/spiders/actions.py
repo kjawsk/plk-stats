@@ -52,7 +52,7 @@ class ActionsSpider(scrapy.Spider):
 
     def action_subtype(self, play):
         try:
-            action_subtype = Action_Subtype.objects.get(parent=action_type, name=play['subType'])
+            action_subtype = Action_Subtype.objects.get(name=play['subType'])
         except Action_Subtype.DoesNotExist:
             self.logger.debug(
                 "\n------\nAction subtype does not exist in db: %s\n"%
