@@ -41,13 +41,6 @@ class ActionsSpider(scrapy.Spider):
     def action_type(self, play):
         try:
             action_type = Action_Type.objects.get(name=play['actionType'])
-            action_subtype = Action_Subtype.objects.get(parent=action_type, name=play['subType'])
-        except Action_Subtype.DoesNotExist:
-            self.logger.debug(
-                "\n------\nAction subtype does not exist in db: %s\n"%
-                (play['subType'])
-            )
-            action_subtype = None
         except Action_Type.DoesNotExist:
             self.logger.critical(
                 "\n------\nAction type does not exist in db: %s\n"%
@@ -55,10 +48,19 @@ class ActionsSpider(scrapy.Spider):
             )
             raise
         finally:
-            return {
-                'type' : action_type,
-                'subtype' : action_subtype,
-            }
+            return action_type
+
+    def action_subtype(self, play):
+        try:
+            action_subtype = Action_Subtype.objects.get(parent=action_type, name=play['subType'])
+        except Action_Subtype.DoesNotExist:
+            self.logger.debug(
+                "\n------\nAction subtype does not exist in db: %s\n"%
+                (play['subType'])
+            )
+            action_subtype = None
+        finally:
+            return action_subtype
 
     def parse(self, response):
         self.data = json.loads(response.body_as_unicode())
@@ -67,12 +69,11 @@ class ActionsSpider(scrapy.Spider):
         for play in self.data['pbp']:
             if play['actionType'] == '2pt':
                 player_name = play['firstName'] + " " + play['familyName']
-                play_type = self.action_type(play)
                 item = ActionItem()
                 item['match'] = match
                 item['team'] = match.home_team if play['tno'] == 1 else match.away_team
-                item['action_type'] = play_type['type']
-                item['action_subtype'] = play_type['subtype']
+                item['action_type'] = self.action_type(play)
+                item['action_subtype'] = self.action_subtype(play)
                 item['player'] = Player.objects.get(name=player_name)
                 item['time'] = datetime.datetime.strptime(play['gt'], '%M:%S').time()
                 ## TODO add period field
