@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Team, Player, Action_Type, Action_Subtype, Match, Action
+from .models import Team, Player, Action_Type, Action_Subtype, Match, Action, Period_Type
 
 class TeamAdminSite(admin.ModelAdmin):
     model = Team
@@ -29,12 +29,17 @@ class ActionSubtypeAdminSite(admin.ModelAdmin):
 class MatchAdminSite(admin.ModelAdmin):
     model = Match
 
+class PeriodTypeSite(admin.ModelAdmin):
+    model = Period_Type
+
 class ActionAdminSite(admin.ModelAdmin):
     model = Action
     list_display = (
         'get_player_name',
         'get_action_name',
         'get_time',
+        'success',
+        'period_type'
     )
 
     def get_player_name(self, obj):
@@ -56,3 +61,4 @@ admin.site.register(Action_Type, ActionTypeAdminSite)
 admin.site.register(Action_Subtype, ActionSubtypeAdminSite)
 admin.site.register(Match, MatchAdminSite)
 admin.site.register(Action, ActionAdminSite)
+admin.site.register(Period_Type, PeriodTypeSite)

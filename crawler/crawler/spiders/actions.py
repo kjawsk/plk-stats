@@ -7,7 +7,7 @@ import scrapy
 import re
 
 from crawler.items import ActionItem, MatchItem
-from stats.models import Action, Action_Type, Action_Subtype, Player, Team, Match
+from stats.models import Action, Action_Type, Action_Subtype, Player, Team, Match, Period_Type
 
 class ActionsSpider(scrapy.Spider):
 
@@ -16,7 +16,7 @@ class ActionsSpider(scrapy.Spider):
     def start_requests(self):
         """Provides list of matches to scrap"""
         urls = [
-            "http://www.fibalivestats.com/data/742430/data.json",
+            "http://www.fibalivestats.com/data/771009/data.json",
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
@@ -76,5 +76,9 @@ class ActionsSpider(scrapy.Spider):
                 item['action_subtype'] = self.action_subtype(play)
                 item['player'] = Player.objects.get(name=player_name)
                 item['time'] = datetime.datetime.strptime(play['gt'], '%M:%S').time()
-                ## TODO add period field
+                item['success'] = True if play['success'] == 1 else False
+                item['period_type'] =  Period_Type.objects.get(name=play['periodType'])
+                item['period'] =  play['period']
                 item.save()
+                ## TODO wywala się na Player.objects.get dla obecnego url => nie ma ktoregos zawodnika w bazie
+                ##      dodac block obslugi wyjatku dla item['player'] i item['period_type']
