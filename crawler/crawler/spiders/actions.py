@@ -6,7 +6,6 @@ import json
 import scrapy
 import re
 
-from crawler.items import ActionItem, ActionTypeItem, ActionSubtypeItem
 from stats.models import Action, Action_Type, Action_Subtype, Player, Match, Period_Type
 
 class ActionsSpider(scrapy.Spider):
@@ -54,10 +53,7 @@ class ActionsSpider(scrapy.Spider):
                 "\n------\nAction type does not exist in db: %s\n"%
                 (play['actionType'])
             )
-            item = ActionTypeItem()
-            item['name'] = play['actionType']
-            item.save()
-            action_type = Action_Type.objects.get(name=play['actionType'])
+            action_type = Action_Type.objects.create(name=play['actionType'])
         finally:
             return action_type
 
@@ -71,10 +67,7 @@ class ActionsSpider(scrapy.Spider):
                 "\n------\nAction subtype does not exist in db: %s\n"%
                 (play['subType'])
             )
-            item = ActionSubtypeItem()
-            item['name'] = play['subType']
-            item.save()
-            action_subtype = Action_Subtype.objects.get(name=play['subType'])
+            action_subtype = Action_Subtype.objects.create(name=play['subType'])
         finally:
             return action_subtype
 
@@ -115,14 +108,23 @@ class ActionsSpider(scrapy.Spider):
         match = self.match_from_response(response)
 
         for play in self.data['pbp']:
-            item = ActionItem()
-            item['match'] = match
-            item['team'] = match.home_team if play['tno'] == 1 else match.away_team
-            item['action_type'] = self.action_type(play)
-            item['action_subtype'] = self.action_subtype(play)
-            item['player'] = self.player(play)
-            item['time'] = datetime.datetime.strptime(play['gt'], '%M:%S').time()
-            item['success'] = True if play['success'] == 1 else False
-            item['period_type'] = self.period_type(play)
-            item['period'] =  play['period']
-            item.save()
+            team = match.home_team if play['tno'] == 1 else match.away_team
+            action_type = self.action_type(play)
+            action_subtype = self.action_subtype(play)
+            player = self.player(play)
+            time = datetime.datetime.strptime(play['gt'], '%M:%S').time()
+            success = True if play['success'] == 1 else False
+            period_type = self.period_type(play)
+            period =  play['period']
+
+            Action.objects.create(
+                match= match,
+                team = team,
+                action_type=action_type,
+                action_subtype=action_subtype,
+                player=player,
+                time=time,
+                success=success,
+                period_type=period_type,
+                period=period,
+            )
