@@ -39,7 +39,8 @@ class ActionAdminSite(admin.ModelAdmin):
         'get_action_name',
         'get_time',
         'success',
-        'period_type'
+        'period',
+        'period_type',
     )
 
     def get_player_name(self, obj):
