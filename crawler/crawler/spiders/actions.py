@@ -18,14 +18,15 @@ class ActionsSpider(scrapy.Spider):
     def start_requests(self):
         """Provides list of matches to scrap"""
         urls = [
-            # "http://www.fibalivestats.com/data/771009/data.json",
+            # "http://www.fibalivestats.com/data/771009/data.json", <= TODO wywala się na braku gracza w db
             "http://www.fibalivestats.com/data/742430/data.json",
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
     def match_from_response(self, response):
-        """"Handles fetching match from db based on fiba_id"""
+        """"Handles fetching match from db based on fiba_id, if specified match is not found
+        exception is raised"""
         fiba_id = re.search(r'\d+', response.url).group()
         if fiba_id is not None:
             try:
@@ -35,6 +36,7 @@ class ActionsSpider(scrapy.Spider):
                     "\n------\Match with following fiba_id does not exist in db: %s\n"%
                     (fiba_id)
                 )
+                raise
             else:
                 return match
         self.logger.critical(
@@ -43,7 +45,8 @@ class ActionsSpider(scrapy.Spider):
         )
 
     def action_type(self, play):
-        """Handles fetching action type for specified play"""
+        """Handles fetching action type for specified play, if action type is not found
+        exception is raised"""
         try:
             action_type = Action_Type.objects.get(name=play['actionType'])
         except Action_Type.DoesNotExist:
@@ -55,8 +58,23 @@ class ActionsSpider(scrapy.Spider):
         else:
             return action_type
 
+    def action_subtype(self, play):
+        """Handles fetching action subtype for specified play, if action subtype is not found None
+        is returned"""
+        try:
+            action_subtype = Action_Subtype.objects.get(name=play['subType'])
+        except Action_Subtype.DoesNotExist:
+            self.logger.debug(
+                "\n------\nAction subtype does not exist in db: %s\n"%
+                (play['subType'])
+            )
+            action_subtype = None
+        finally:
+            return action_subtype
+
     def player(self, play):
-        """Handles fetching player for specified play"""
+        """Handles fetching player for specified play, if player is not found
+        exception is raised"""
         player_name = play['firstName'] + " " + play['familyName']
         try:
             player = Player.objects.get(name=player_name)
@@ -69,21 +87,9 @@ class ActionsSpider(scrapy.Spider):
         else:
             return player
 
-    def action_subtype(self, play):
-        """Handles fetching action subtype for specified play"""
-        try:
-            action_subtype = Action_Subtype.objects.get(name=play['subType'])
-        except Action_Subtype.DoesNotExist:
-            self.logger.debug(
-                "\n------\nAction subtype does not exist in db: %s\n"%
-                (play['subType'])
-            )
-            action_subtype = None
-        finally:
-            return action_subtype
-
     def period_type(self, play):
-        """Handles fetching period type for specified play"""
+        """Handles fetching period type for specified play, if period type is not found
+        exception is raised"""
         try:
             period_type = Period_Type.objects.get(name=play['periodType'])
         except Period_Type.DoesNotExist:
