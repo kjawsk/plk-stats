@@ -6,7 +6,7 @@ import json
 import scrapy
 import re
 
-from crawler.items import ActionItem
+from crawler.items import ActionItem, ActionTypeItem, ActionSubtypeItem
 from stats.models import Action, Action_Type, Action_Subtype, Player, Match, Period_Type
 
 class ActionsSpider(scrapy.Spider):
@@ -45,8 +45,8 @@ class ActionsSpider(scrapy.Spider):
         )
 
     def action_type(self, play):
-        """Handles fetching action type for specified play, if action type is not found
-        exception is raised"""
+        """Handles fetching action type for specified play. If action type is not found, it is added
+        to db"""
         try:
             action_type = Action_Type.objects.get(name=play['actionType'])
         except Action_Type.DoesNotExist:
@@ -54,13 +54,16 @@ class ActionsSpider(scrapy.Spider):
                 "\n------\nAction type does not exist in db: %s\n"%
                 (play['actionType'])
             )
-            raise
-        else:
+            item = ActionTypeItem()
+            item['name'] = play['actionType']
+            item.save()
+            action_type = Action_Type.objects.get(name=play['actionType'])
+        finally:
             return action_type
 
     def action_subtype(self, play):
-        """Handles fetching action subtype for specified play, if action subtype is not found None
-        is returned"""
+        """Handles fetching action subtype for specified play. If action type is not found, it is
+        added to db"""
         try:
             action_subtype = Action_Subtype.objects.get(name=play['subType'])
         except Action_Subtype.DoesNotExist:
@@ -68,15 +71,18 @@ class ActionsSpider(scrapy.Spider):
                 "\n------\nAction subtype does not exist in db: %s\n"%
                 (play['subType'])
             )
-            action_subtype = None
+            item = ActionSubtypeItem()
+            item['name'] = play['subType']
+            item.save()
+            action_subtype = Action_Subtype.objects.get(name=play['subType'])
         finally:
             return action_subtype
 
     def player(self, play):
         """Handles fetching player for specified play, if player is not found
         exception is raised"""
-        player_name = play['firstName'] + " " + play['familyName']
         try:
+            player_name = play['firstName'] + " " + play['familyName']
             player = Player.objects.get(name=player_name)
         except Player.DoesNotExist:
             self.logger.critical(
@@ -84,6 +90,8 @@ class ActionsSpider(scrapy.Spider):
                 (player_name)
             )
             raise
+        except KeyError:
+            player = None
         else:
             return player
 
@@ -107,15 +115,14 @@ class ActionsSpider(scrapy.Spider):
         match = self.match_from_response(response)
 
         for play in self.data['pbp']:
-            if play['actionType'] == '2pt':
-                item = ActionItem()
-                item['match'] = match
-                item['team'] = match.home_team if play['tno'] == 1 else match.away_team
-                item['action_type'] = self.action_type(play)
-                item['action_subtype'] = self.action_subtype(play)
-                item['player'] = self.player(play)
-                item['time'] = datetime.datetime.strptime(play['gt'], '%M:%S').time()
-                item['success'] = True if play['success'] == 1 else False
-                item['period_type'] = self.period_type(play)
-                item['period'] =  play['period']
-                item.save()
+            item = ActionItem()
+            item['match'] = match
+            item['team'] = match.home_team if play['tno'] == 1 else match.away_team
+            item['action_type'] = self.action_type(play)
+            item['action_subtype'] = self.action_subtype(play)
+            item['player'] = self.player(play)
+            item['time'] = datetime.datetime.strptime(play['gt'], '%M:%S').time()
+            item['success'] = True if play['success'] == 1 else False
+            item['period_type'] = self.period_type(play)
+            item['period'] =  play['period']
+            item.save()

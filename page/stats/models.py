@@ -50,7 +50,7 @@ class Action(models.Model):
     team = models.ForeignKey(Team)
     action_type = models.ForeignKey(Action_Type)
     action_subtype = models.ForeignKey(Action_Subtype, null=True)
-    player = models.ForeignKey(Player)
+    player = models.ForeignKey(Player, null=True)
     time = models.TimeField(auto_now=False)
     success = models.BooleanField()
     period_type = models.ForeignKey(Period_Type)
