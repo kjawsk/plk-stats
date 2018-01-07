@@ -17,8 +17,8 @@ class ActionsSpider(scrapy.Spider):
     def start_requests(self):
         """Provides list of matches to scrap"""
         urls = [
-            # "http://www.fibalivestats.com/data/771009/data.json", <= TODO wywala się na braku gracza w db
-            "http://www.fibalivestats.com/data/742430/data.json",
+            "http://www.fibalivestats.com/data/771009/data.json",
+            # "http://www.fibalivestats.com/data/742430/data.json",
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
@@ -76,10 +76,16 @@ class ActionsSpider(scrapy.Spider):
         exception is raised"""
         try:
             player_name = play['firstName'] + " " + play['familyName']
-            player = Player.objects.get(name=player_name)
+            player = Player.objects.get(name=player_name) ## TODO powinno pobierac tylko aktualnych graczy
         except Player.DoesNotExist:
             self.logger.critical(
                 "\n------\nPlayer does not exist in db: %s\n"%
+                (player_name)
+            )
+            raise
+        except Player.MultipleObjectsReturned:
+            self.logger.critical(
+                "\n------\nThere are more than one player: %s\n"%
                 (player_name)
             )
             raise

@@ -39,13 +39,10 @@ class PlayersSpider(scrapy.Spider):
     def team(self, response):
         """Handles fetching team object for specified response from plk.pl"""
         team_name = response.xpath(self.xpath_team_name).extract()[0]
-        try:
-            team = Team.objects.get(name=team_name)
-        except Team.DoesNotExist:
-            team = Team.objects.create(name=team_name)
+        team, created = Team.objects.get_or_create(name=team_name)
         return team
 
-    def players(self, response):
+    def players_on_plk(self, response):
         """Handles fetching players names for team from plk.pl"""
         extracted = response.xpath(self.xpath_player).extract()
         cleaned = [remove_tags(x.replace("  ", "")) for x in extracted]
@@ -53,17 +50,23 @@ class PlayersSpider(scrapy.Spider):
         return players
 
     def parse(self, response):
-        """Creates player objects for team from response"""
+        """Creates player objects for team from response, if player has already exist for team,
+        this action is omitted"""
         team = self.team(response)
-        players = self.players(response)
+        players_plk = self.players_on_plk(response)
+        players_db = Player.objects.filter(team=team)
 
-        for row in players:
-            Player.objects.create(
-                name = row[2],
-                short_name = row[2].split()[0][0] + ". " + row[2].split()[1],
-                team = team,
-                passport = row[3],
-                birth = datetime.strptime(row[4], "%Y-%m-%d"),
-                height = row[5],
-                position = row[6]
-            )
+        for player in players_plk:
+            if not players_db.filter(name=player[2]).exists():
+                Player.objects.create(
+                    name = player[2],
+                    short_name = player[2].split()[0][0] + ". " + player[2].split()[1],
+                    team = team,
+                    passport = player[3],
+                    birth = datetime.strptime(player[4], "%Y-%m-%d"),
+                    height = player[5],
+                    position = player[6]
+                )
+        ## TODO dodac doawanie graczy, ktorzy odeszli
+        ## TODO dodac pole oznaczajace, czy dany gracz nadal gra dla zespolu, potem uaktualnic
+        ##      wsyzstkie Players.objects.get aby pobieraly aktualnych graczy
