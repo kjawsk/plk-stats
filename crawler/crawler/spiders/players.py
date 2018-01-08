@@ -49,6 +49,25 @@ class PlayersSpider(scrapy.Spider):
         players = [x.split("\n") for x in cleaned]
         return players
 
+    def past_players(self, response, team):
+        ## TODO doc string
+        ## TODO sprawdzanie, czy gracza juz nie ma w bazie, tak jak dla aktualnych graczy
+        infos = response.xpath("//*[@id='contentInside']//div//p/text()").extract()
+        infos = [x.replace(",", "").strip() for x in infos]
+        names = response.xpath("//*[@id='contentInside']//div//p//strong/text()").extract()
+        past_crew = list(zip(names, infos))
+        for person in past_crew:
+            if 'zawodnik' in person[1]:
+                Player.objects.create(
+                    name = person[0],
+                    short_name = person[0].split()[0][0] + ". " + person[0].split()[1],
+                    team = team,
+                    passport = None,
+                    birth = None,
+                    height = None,
+                    position = None
+                )
+
     def parse(self, response):
         """Creates player objects for team from response, if player has already exist for team,
         this action is omitted"""
@@ -67,6 +86,6 @@ class PlayersSpider(scrapy.Spider):
                     height = player[5],
                     position = player[6]
                 )
-        ## TODO dodac doawanie graczy, ktorzy odeszli
         ## TODO dodac pole oznaczajace, czy dany gracz nadal gra dla zespolu, potem uaktualnic
         ##      wsyzstkie Players.objects.get aby pobieraly aktualnych graczy
+        self.past_players(response, team)
