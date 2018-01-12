@@ -45,7 +45,7 @@ class PlayersSpider(scrapy.Spider):
         return team
 
     def past_players(self, response, team):
-        """Handles fetching past players(coach name is omitted) names for team from plk.pl and
+        """Handles fetching past players(past coach names is omitted) names for team from plk.pl and
         creates player objects for team from response, if player has already exist for team,
         this action is omitted"""
         infos = response.xpath(self.xpath_past_crew_infos).extract()
