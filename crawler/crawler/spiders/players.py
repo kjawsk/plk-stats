@@ -11,6 +11,8 @@ class PlayersSpider(scrapy.Spider):
     name = "players"
     xpath_team_name = "//*[@id='team-header']//h1/text()"
     xpath_player = "//tr[@itemprop='athlete']"
+    xpath_past_crew_names = "//*[@id='contentInside']//div//p//strong/text()"
+    xpath_past_crew_infos = "//*[@id='contentInside']//div//p/text()"
 
     def start_requests(self):
         """Provides list of team sites"""
@@ -42,39 +44,37 @@ class PlayersSpider(scrapy.Spider):
         team, created = Team.objects.get_or_create(name=team_name)
         return team
 
-    def players_on_plk(self, response):
-        """Handles fetching players names for team from plk.pl"""
-        extracted = response.xpath(self.xpath_player).extract()
-        cleaned = [remove_tags(x.replace("  ", "")) for x in extracted]
-        players = [x.split("\n") for x in cleaned]
-        return players
-
     def past_players(self, response, team):
-        ## TODO doc string
-        ## TODO sprawdzanie, czy gracza juz nie ma w bazie, tak jak dla aktualnych graczy
-        infos = response.xpath("//*[@id='contentInside']//div//p/text()").extract()
+        """Handles fetching past players(coach name is omitted) names for team from plk.pl and
+        creates player objects for team from response, if player has already exist for team,
+        this action is omitted"""
+        infos = response.xpath(self.xpath_past_crew_infos).extract()
         infos = [x.replace(",", "").strip() for x in infos]
-        names = response.xpath("//*[@id='contentInside']//div//p//strong/text()").extract()
+        names = response.xpath(self.xpath_past_crew_names).extract()
         past_crew = list(zip(names, infos))
+
+        players_db = Player.objects.filter(team=team)
         for person in past_crew:
             if 'zawodnik' in person[1]:
-                Player.objects.create(
-                    name = person[0],
-                    short_name = person[0].split()[0][0] + ". " + person[0].split()[1],
-                    team = team,
-                    passport = None,
-                    birth = None,
-                    height = None,
-                    position = None
-                )
+                if not players_db.filter(name=person[0]).exists():
+                    Player.objects.create(
+                        name = person[0],
+                        short_name = person[0].split()[0][0] + ". " + person[0].split()[1],
+                        team = team,
+                        passport = None,
+                        birth = None,
+                        height = None,
+                        position = None
+                    )
 
-    def parse(self, response):
-        """Creates player objects for team from response, if player has already exist for team,
-        this action is omitted"""
-        team = self.team(response)
-        players_plk = self.players_on_plk(response)
+    def current_players(self, response, team):
+        """Handles fetching players names for team from plk.pl and creates player objects for team
+        from response, if player has already exist for team, this action is omitted"""
+        extracted = response.xpath(self.xpath_player).extract()
+        cleaned = [remove_tags(x.replace("  ", "")) for x in extracted]
+        players_plk = [x.split("\n") for x in cleaned]
+
         players_db = Player.objects.filter(team=team)
-
         for player in players_plk:
             if not players_db.filter(name=player[2]).exists():
                 Player.objects.create(
@@ -86,6 +86,9 @@ class PlayersSpider(scrapy.Spider):
                     height = player[5],
                     position = player[6]
                 )
-        ## TODO dodac pole oznaczajace, czy dany gracz nadal gra dla zespolu, potem uaktualnic
-        ##      wsyzstkie Players.objects.get aby pobieraly aktualnych graczy
+
+    def parse(self, response):
+        """Parses response from each team site from plk.pl"""
+        team = self.team(response)
+        self.current_players(response, team)
         self.past_players(response, team)
