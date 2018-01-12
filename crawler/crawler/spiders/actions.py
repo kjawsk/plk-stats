@@ -76,7 +76,7 @@ class ActionsSpider(scrapy.Spider):
         exception is raised"""
         try:
             player_name = play['firstName'] + " " + play['familyName']
-            player = Player.objects.get(name=player_name) ## TODO powinno pobierac tylko aktualnych graczy
+            player = Player.objects.get(name=player_name)
         except Player.DoesNotExist:
             self.logger.critical(
                 "\n------\nPlayer does not exist in db: %s\n"%
