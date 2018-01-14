@@ -9,7 +9,6 @@ class Team(models.Model):
 class Player(models.Model):
     name = models.CharField(max_length=100)
     short_name = models.CharField(max_length=100)
-    team = models.ForeignKey(Team)
     passport = models.CharField(max_length=30, null=True)
     birth = models.DateField(auto_now=False, null=True)
     height = models.PositiveIntegerField(null=True)
@@ -17,6 +16,14 @@ class Player(models.Model):
 
     def __str__(self):
         return self.name
+
+class TeamPlayer(self):
+    team = models.ForeignKey(Team)
+    player = models.ForeignKey(Player)
+    to = models.DateField(auto_now=False)
+
+    def __str__(self):
+        return self.player.name
 
 class Action_Type(models.Model):
     name = models.CharField(max_length=20)
@@ -47,10 +54,9 @@ class Match(models.Model):
 
 class Action(models.Model):
     match = models.ForeignKey(Match)
-    team = models.ForeignKey(Team)
+    teamplayer = models.ForeignKey(TeamPlayer, null=True)
     action_type = models.ForeignKey(Action_Type)
     action_subtype = models.ForeignKey(Action_Subtype, null=True)
-    player = models.ForeignKey(Player, null=True)
     time = models.TimeField(auto_now=False)
     success = models.BooleanField()
     period_type = models.ForeignKey(Period_Type)
