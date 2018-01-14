@@ -4,7 +4,7 @@ import scrapy
 from datetime import datetime
 from w3lib.html import remove_tags
 
-from stats.models import Team, Player
+from stats.models import Team, Player, TeamPlayer
 
 class PlayersSpider(scrapy.Spider):
 
@@ -74,18 +74,23 @@ class PlayersSpider(scrapy.Spider):
         cleaned = [remove_tags(x.replace("  ", "")) for x in extracted]
         players_plk = [x.split("\n") for x in cleaned]
 
-        players_db = Player.objects.filter(team=team)
+        players_db = TeamPlayer.objects.filter(team__name=team)
         for player in players_plk:
-            if not players_db.filter(name=player[2]).exists():
-                Player.objects.create(
+            if not players_db.filter(team__name=player[2]).exists():
+                player, created = Player.objects.get_or_create(
                     name = player[2],
                     short_name = player[2].split()[0][0] + ". " + player[2].split()[1],
-                    team = team,
                     passport = player[3],
                     birth = datetime.strptime(player[4], "%Y-%m-%d"),
                     height = player[5],
                     position = player[6]
                 )
+                TeamPlayer.objects.create(
+                    team=team,
+                    player=player,
+                    to=None
+                )
+
 
     def parse(self, response):
         """Parses response from each team site from plk.pl"""
