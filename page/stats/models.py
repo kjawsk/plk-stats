@@ -17,10 +17,10 @@ class Player(models.Model):
     def __str__(self):
         return self.name
 
-class TeamPlayer(self):
+class TeamPlayer(models.Model):
     team = models.ForeignKey(Team)
     player = models.ForeignKey(Player)
-    to = models.DateField(auto_now=False)
+    to = models.DateField(auto_now=False, null=True)
 
     def __str__(self):
         return self.player.name
