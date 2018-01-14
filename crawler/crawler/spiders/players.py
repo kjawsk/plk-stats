@@ -52,24 +52,32 @@ class PlayersSpider(scrapy.Spider):
         infos = [x.replace(",", "").strip() for x in infos]
         names = response.xpath(self.xpath_past_crew_names).extract()
         past_crew = list(zip(names, infos))
-
-        players_db = TeamPlayer.objects.filter(team__name=team)
+## TODO player tworzony jest nawet jeśli, już taki gracz istnieje dla innego zespołu
+## => patrz N. Markovic
+        team_players_in_db = TeamPlayer.objects.filter(team__name=team)
         for person in past_crew:
             if 'zawodnik' in person[1]:
-                if not players_db.filter(team__name=person[0]).exists():
-                    player, created = Player.objects.get_or_create(
-                            name = person[0],
-                            short_name = person[0].split()[0][0] + ". " + person[0].split()[1],
-                            passport = None,
-                            birth = None,
-                            height = None,
-                            position = None
+                if not team_players_in_db.filter(team__name=person[0]).exists():
+                    if Player.objects.filter(name=person[0]).exists():
+                        TeamPlayer.objects.create(
+                            team=team,
+                            player=Player.objects.get(name=person[0]),
+                            to=None
                         )
-                    TeamPlayer.objects.create(
-                        team=team,
-                        player=player,
-                        to=None
-                    )
+                    else:
+                        player, created = Player.objects.get_or_create(
+                                name = person[0],
+                                short_name = person[0].split()[0][0] + ". " + person[0].split()[1],
+                                passport = None,
+                                birth = None,
+                                height = None,
+                                position = None
+                            )
+                        TeamPlayer.objects.create(
+                            team=team,
+                            player=player,
+                            to=None
+                        )
 
     def current_players(self, response, team):
         """Handles fetching players names for team from plk.pl and creates player objects for team
