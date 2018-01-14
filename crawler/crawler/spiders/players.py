@@ -53,18 +53,22 @@ class PlayersSpider(scrapy.Spider):
         names = response.xpath(self.xpath_past_crew_names).extract()
         past_crew = list(zip(names, infos))
 
-        players_db = Player.objects.filter(team=team)
+        players_db = TeamPlayer.objects.filter(team__name=team)
         for person in past_crew:
             if 'zawodnik' in person[1]:
-                if not players_db.filter(name=person[0]).exists():
-                    Player.objects.create(
-                        name = person[0],
-                        short_name = person[0].split()[0][0] + ". " + person[0].split()[1],
-                        team = team,
-                        passport = None,
-                        birth = None,
-                        height = None,
-                        position = None
+                if not players_db.filter(team__name=person[0]).exists():
+                    player, created = Player.objects.get_or_create(
+                            name = person[0],
+                            short_name = person[0].split()[0][0] + ". " + person[0].split()[1],
+                            passport = None,
+                            birth = None,
+                            height = None,
+                            position = None
+                        )
+                    TeamPlayer.objects.create(
+                        team=team,
+                        player=player,
+                        to=None
                     )
 
     def current_players(self, response, team):
