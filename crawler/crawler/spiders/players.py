@@ -52,8 +52,7 @@ class PlayersSpider(scrapy.Spider):
         infos = [x.replace(",", "").strip() for x in infos]
         names = response.xpath(self.xpath_past_crew_names).extract()
         past_crew = list(zip(names, infos))
-## TODO player tworzony jest nawet jeśli, już taki gracz istnieje dla innego zespołu
-## => patrz N. Markovic
+
         team_players_in_db = TeamPlayer.objects.filter(team__name=team)
         for person in past_crew:
             if 'zawodnik' in person[1]:
