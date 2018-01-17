@@ -45,38 +45,27 @@ class PlayersSpider(scrapy.Spider):
         return team
 
     def past_players(self, response, team):
-        """Handles fetching past players(past coach names is omitted) names for team from plk.pl and
+        """Handles fetching past players(past coach names are omitted) names for team from plk.pl and
         creates player objects for team from response, if player has already exist for team,
         this action is omitted"""
         infos = response.xpath(self.xpath_past_crew_infos).extract()
         infos = [x.replace(",", "").strip() for x in infos]
         names = response.xpath(self.xpath_past_crew_names).extract()
         past_crew = list(zip(names, infos))
+        past_players = [x for x in past_crew if 'zawodnik' in x[1]]
 
-        team_players_in_db = TeamPlayer.objects.filter(team__name=team)
-        for person in past_crew:
-            if 'zawodnik' in person[1]:
-                if not team_players_in_db.filter(team__name=person[0]).exists():
-                    if Player.objects.filter(name=person[0]).exists():
-                        TeamPlayer.objects.create(
-                            team=team,
-                            player=Player.objects.get(name=person[0]),
-                            to=None
-                        )
-                    else:
-                        player, created = Player.objects.get_or_create(
-                                name = person[0],
-                                short_name = person[0].split()[0][0] + ". " + person[0].split()[1],
-                                passport = None,
-                                birth = None,
-                                height = None,
-                                position = None
-                            )
-                        TeamPlayer.objects.create(
-                            team=team,
-                            player=player,
-                            to=None
-                        )
+        players_db = TeamPlayer.objects.filter(team__name=team)
+        for player in past_players:
+            if not players_db.filter(team__name=player[0]).exists():
+                player, created  = Player.objects.get_or_create(
+                        name=player[0],
+                        short_name=player[0].split()[0][0] + ". " + player[0].split()[1]
+                    )
+                TeamPlayer.objects.create(
+                    team=team,
+                    player=player,
+                    to=None
+                )
 
     def current_players(self, response, team):
         """Handles fetching players names for team from plk.pl and creates player objects for team
