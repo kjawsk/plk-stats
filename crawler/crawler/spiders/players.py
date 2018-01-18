@@ -4,7 +4,7 @@ import scrapy
 from datetime import datetime
 from w3lib.html import remove_tags
 
-from stats.models import Team, Player, TeamPlayer
+from stats.models import Team, Player, Team_Player
 
 class PlayersSpider(scrapy.Spider):
 
@@ -54,14 +54,14 @@ class PlayersSpider(scrapy.Spider):
         past_crew = list(zip(names, infos))
         past_players = [x for x in past_crew if 'zawodnik' in x[1]]
 
-        players_db = TeamPlayer.objects.filter(team__name=team)
+        players_db = Team_Player.objects.filter(team__name=team)
         for player in past_players:
             if not players_db.filter(team__name=player[0]).exists():
                 player, created  = Player.objects.get_or_create(
                         name=player[0],
                         short_name=player[0].split()[0][0] + ". " + player[0].split()[1]
                     )
-                TeamPlayer.objects.create(
+                Team_Player.objects.create(
                     team=team,
                     player=player,
                     to=None
@@ -74,7 +74,7 @@ class PlayersSpider(scrapy.Spider):
         cleaned = [remove_tags(x.replace("  ", "")) for x in extracted]
         players_plk = [x.split("\n") for x in cleaned]
 
-        players_db = TeamPlayer.objects.filter(team__name=team)
+        players_db = Team_Player.objects.filter(team__name=team)
         for player in players_plk:
             if not players_db.filter(team__name=player[2]).exists():
                 player, created = Player.objects.get_or_create(
@@ -85,7 +85,7 @@ class PlayersSpider(scrapy.Spider):
                     height = player[5],
                     position = player[6]
                 )
-                TeamPlayer.objects.create(
+                Team_Player.objects.create(
                     team=team,
                     player=player,
                     to=None

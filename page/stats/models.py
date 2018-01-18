@@ -17,7 +17,7 @@ class Player(models.Model):
     def __str__(self):
         return self.name
 
-class TeamPlayer(models.Model):
+class Team_Player(models.Model):
     team = models.ForeignKey(Team)
     player = models.ForeignKey(Player)
     to = models.DateField(auto_now=False, null=True)
@@ -54,7 +54,7 @@ class Match(models.Model):
 
 class Action(models.Model):
     match = models.ForeignKey(Match)
-    teamplayer = models.ForeignKey(TeamPlayer, null=True)
+    Team_Player = models.ForeignKey(Team_Player, null=True)
     action_type = models.ForeignKey(Action_Type)
     action_subtype = models.ForeignKey(Action_Subtype, null=True)
     time = models.TimeField(auto_now=False)
