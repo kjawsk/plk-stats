@@ -54,7 +54,7 @@ class Match(models.Model):
 
 class Action(models.Model):
     match = models.ForeignKey(Match)
-    Team_Player = models.ForeignKey(Team_Player, null=True)
+    teamplayer = models.ForeignKey(Team_Player, null=True)
     action_type = models.ForeignKey(Action_Type)
     action_subtype = models.ForeignKey(Action_Subtype, null=True)
     time = models.TimeField(auto_now=False)
@@ -63,4 +63,4 @@ class Action(models.Model):
     period = models.PositiveIntegerField()
 
     def __str__(self):
-        return ("%s: %s %s") % (self.time, self.player.name, self.action_type.name)
+        return ("%s: %s %s") % (self.time, self.teamplayer.player.name, self.action_type.name)
