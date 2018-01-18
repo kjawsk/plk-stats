@@ -6,7 +6,7 @@ import json
 import scrapy
 import re
 
-from stats.models import Action, Action_Type, Action_Subtype, Player, Match, Period_Type
+from stats.models import Action, Action_Type, Action_Subtype, Team_Player, Match, Period_Type
 
 class ActionsSpider(scrapy.Spider):
     """Class ActionsSpider is responsible for fetching actions from fibalivestats for matches
@@ -71,22 +71,22 @@ class ActionsSpider(scrapy.Spider):
         finally:
             return action_subtype
 
-    def player(self, play):
+    def player(self, play, team):
         """Handles fetching player for specified play, if player is not found
         exception is raised"""
         try:
             player_name = play['firstName'] + " " + play['familyName']
-            player = Player.objects.get(name=player_name)
-        except Player.DoesNotExist:
+            player = Team_Player.objects.get(player__name=player_name, team=team)
+        except Team_Player.DoesNotExist:
             self.logger.critical(
-                "\n------\nPlayer does not exist in db: %s\n"%
-                (player_name)
+                "\n------\nTeamPlayer does not exist: %s %s\n"%
+                (team.name, player_name)
             )
             raise
-        except Player.MultipleObjectsReturned:
+        except Team_Player.MultipleObjectsReturned:
             self.logger.critical(
-                "\n------\nThere are more than one player: %s\n"%
-                (player_name)
+                "\n------\nThere are more than one player: %s %s\n"%
+                (team.name, player_name)
             )
             raise
         except KeyError:
@@ -117,7 +117,7 @@ class ActionsSpider(scrapy.Spider):
             team = match.home_team if play['tno'] == 1 else match.away_team
             action_type = self.action_type(play)
             action_subtype = self.action_subtype(play)
-            player = self.player(play)
+            player = self.player(play, team)
             time = datetime.datetime.strptime(play['gt'], '%M:%S').time()
             success = True if play['success'] == 1 else False
             period_type = self.period_type(play)
@@ -125,10 +125,9 @@ class ActionsSpider(scrapy.Spider):
 
             Action.objects.create(
                 match= match,
-                team = team,
                 action_type=action_type,
                 action_subtype=action_subtype,
-                player=player,
+                teamplayer=player,
                 time=time,
                 success=success,
                 period_type=period_type,

@@ -52,8 +52,8 @@ class ActionAdminSite(admin.ModelAdmin):
     )
 
     def get_player_name(self, obj):
-        if obj.player is not None:
-            return obj.player.name
+        if obj.teamplayer is not None:
+            return obj.teamplayer.player.name
         return None
 
     def get_action_name(self, obj):
