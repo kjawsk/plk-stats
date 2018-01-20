@@ -75,7 +75,7 @@ class ActionsSpider(scrapy.Spider):
         exception is raised"""
         try:
             player_name = play['firstName'] + " " + play['familyName']
-            player = Team_Player.objects.get(player__name=player_name, team=team)
+            player = Team_Player.objects.get(player__name__iexact=player_name, team=team)
         except Team_Player.DoesNotExist:
             self.logger.critical(
                 "\n------\nTeamPlayer does not exist: %s %s\n"%
