@@ -6,6 +6,7 @@ import json
 import scrapy
 import re
 
+from django.db.models import Count
 from stats.models import Action, Action_Type, Action_Subtype, Team_Player, Match, Period_Type
 
 class ActionsSpider(scrapy.Spider):
@@ -16,11 +17,9 @@ class ActionsSpider(scrapy.Spider):
 
     def start_requests(self):
         """Provides list of matches to scrap"""
-        urls = [
-            "http://www.fibalivestats.com/data/771009/data.json",
-            # "http://www.fibalivestats.com/data/742430/data.json",
-        ]
-        for url in urls:
+        matches = Match.objects.annotate(Count('action')).filter(action__count=0)
+        for match in matches:
+            url = "http://www.fibalivestats.com/data/%s/data.json" % (match.fiba_id)
             yield scrapy.Request(url=url, callback=self.parse)
 
     def match_from_response(self, response):
