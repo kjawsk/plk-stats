@@ -6,6 +6,9 @@ class Team(models.Model):
     def __str__(self):
         return self.name
 
+class Set(models.Model):
+    players_set = models.ManyToManyField('Team_Player')
+
 class Player(models.Model):
     name = models.CharField(max_length=100)
     short_name = models.CharField(max_length=100)
