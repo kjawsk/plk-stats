@@ -7,7 +7,7 @@ class Team(models.Model):
         return self.name
 
 class Set(models.Model):
-    players_set = models.ManyToManyField('Team_Player')
+    teamplayers = models.ManyToManyField('Team_Player')
 
 class Player(models.Model):
     name = models.CharField(max_length=100)
