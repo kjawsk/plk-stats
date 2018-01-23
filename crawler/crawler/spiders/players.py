@@ -9,6 +9,12 @@ from stats.models import Team, Player, Team_Player
 class PlayersSpider(scrapy.Spider):
 
     name = "players"
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'crawler.pipelines.PlayersPipeline': 300
+        }
+    }
+
     xpath_team_name = "//*[@id='team-header']//h1/text()"
     xpath_player = "//tr[@itemprop='athlete']"
     xpath_past_crew_names = "//*[@id='contentInside']//div//p//strong/text()"
@@ -38,62 +44,29 @@ class PlayersSpider(scrapy.Spider):
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
-    def team(self, response):
-        """Handles fetching team object for specified response from plk.pl"""
-        team_name = response.xpath(self.xpath_team_name).extract()[0]
-        team, created = Team.objects.get_or_create(name=team_name)
-        return team
 
-    def past_players(self, response, team):
-        """Handles fetching past players(past coach names are omitted) names for team from plk.pl and
-        creates player objects for team from response, if player has already exist for team,
-        this action is omitted"""
+    def _past_players(self, response):
+        """Handles fetching past players(past coach names are omitted) names for team from plk.pl"""
         infos = response.xpath(self.xpath_past_crew_infos).extract()
         infos = [x.replace(",", "").strip() for x in infos]
         names = response.xpath(self.xpath_past_crew_names).extract()
         past_crew = list(zip(names, infos))
-        past_players = [x for x in past_crew if 'zawodnik' in x[1]]
+        past_players = [x[0] for x in past_crew if 'zawodnik' in x[1]]
+        return past_players
 
-        players_db = Team_Player.objects.filter(team__name=team)
-        for player in past_players:
-            if not players_db.filter(team__name=player[0]).exists():
-                player, created  = Player.objects.get_or_create(
-                        name=player[0],
-                        short_name=player[0].split()[0][0] + ". " + player[0].split()[1]
-                    )
-                Team_Player.objects.create(
-                    team=team,
-                    player=player,
-                    to=None
-                )
 
-    def current_players(self, response, team):
-        """Handles fetching players names for team from plk.pl and creates player objects for team
-        from response, if player has already exist for team, this action is omitted"""
+    def _current_players(self, response):
+        """Handles fetching players names for team from plk.pl"""
         extracted = response.xpath(self.xpath_player).extract()
         cleaned = [remove_tags(x.replace("  ", "")) for x in extracted]
-        players_plk = [x.split("\n") for x in cleaned]
-
-        players_db = Team_Player.objects.filter(team__name=team)
-        for player in players_plk:
-            if not players_db.filter(team__name=player[2]).exists():
-                player, created = Player.objects.get_or_create(
-                    name = player[2],
-                    short_name = player[2].split()[0][0] + ". " + player[2].split()[1],
-                    passport = player[3],
-                    birth = datetime.strptime(player[4], "%Y-%m-%d"),
-                    height = player[5],
-                    position = player[6]
-                )
-                Team_Player.objects.create(
-                    team=team,
-                    player=player,
-                    to=None
-                )
+        current_players = [x.split("\n") for x in cleaned]
+        return current_players
 
 
     def parse(self, response):
         """Parses response from each team site from plk.pl"""
-        team = self.team(response)
-        self.current_players(response, team)
-        self.past_players(response, team)
+        result = dict()
+        result['team_name'] = response.xpath(self.xpath_team_name).extract()[0]
+        result['current_players'] = self._current_players(response)
+        result['past_players'] = self._past_players(response)
+        yield result
