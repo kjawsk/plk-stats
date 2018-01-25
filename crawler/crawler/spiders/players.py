@@ -64,7 +64,13 @@ class PlayersSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        """Parses response from each team site from plk.pl"""
+        """Parses response from each team site from plk.pl
+
+        @url http://plk.pl/druzyny/d/32/azs-koszalin.html
+        @returns items 1
+        @past_players_min_count 3
+        @scrapes team_name current_players past_players
+        """
         result = dict()
         result['team_name'] = response.xpath(self.xpath_team_name).extract()[0]
         result['current_players'] = self._current_players(response)
