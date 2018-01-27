@@ -98,5 +98,5 @@ DOWNLOAD_DELAY = 10
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 SPIDER_CONTRACTS = {
-    'crawler.contracts.PastPlayersCountContract': 10,
+    'crawler.contracts.FieldMinCountContract': 10,
 }
