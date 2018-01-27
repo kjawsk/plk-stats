@@ -99,4 +99,5 @@ DOWNLOAD_DELAY = 10
 
 SPIDER_CONTRACTS = {
     'crawler.contracts.FieldMinCountContract': 10,
+    'crawler.contracts.ValueNotInFieldContract' : 10,
 }

@@ -15,3 +15,17 @@ class FieldMinCountContract(Contract):
         past_players_count = len(output[0][key])
         if min_count > past_players_count:
             raise ContractFail('Output has too few arguments')
+
+class ValueNotInFieldContract(Contract):
+    """Contract used to check if output key field does not contain specified value
+    arg[0] - key
+    arg[1] - value
+    """
+
+    name = 'field_not_contain_value'
+
+    def post_process(self, output):
+        key = self.args[0]
+        value = self.args[1]
+        if value in output[0][key]:
+            raise ContractFail('Output has too few arguments')

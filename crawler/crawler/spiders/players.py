@@ -12,10 +12,7 @@ class PlayersSpider(scrapy.Spider):
     custom_settings = {
         'ITEM_PIPELINES': {
             'crawler.pipelines.PlayersPipeline': 300
-        },
-        'SPIDER_CONTRACTS' : {
-            'crawler.contracts.PastPlayersMinCountContract': 10,
-        },
+        }
     }
 
     xpath_team_name = "//*[@id='team-header']//h1/text()"
@@ -73,6 +70,7 @@ class PlayersSpider(scrapy.Spider):
         @returns items 1
         @field_min_count past_players 3
         @field_min_count current_players 10
+        @field_not_contain_value past_players Szczubiał
         @scrapes team_name current_players past_players
         """
         result = dict()
