@@ -2,7 +2,7 @@ from datetime import datetime
 from stats.models import Team, Player, Team_Player
 
 class PlayersPipeline(object):
-"""This is a class responsible for processing(adding to database) items from players spider"""
+    """This is a class responsible for processing(adding to database) items from players spider"""
 
     def _current_players(self, current_players, team):
         """Creates or gets player objects, then create Team Player object, if player has already
