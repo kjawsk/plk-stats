@@ -9,6 +9,7 @@ import re
 from django.db.models import Count
 from stats.models import Match
 
+
 class ActionsSpider(scrapy.Spider):
     """Class ActionsSpider is responsible for fetching actions from fibalivestats"""
 

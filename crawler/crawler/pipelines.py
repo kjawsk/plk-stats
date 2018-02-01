@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from stats.models import Action, Action_Type, Action_Subtype, Team, Team_Player, Match, Period_Type, Player
 
+
 class PlayersPipeline(object):
     """This is a class responsible for processing(adding to database) items from players spider"""
 
@@ -48,6 +49,7 @@ class PlayersPipeline(object):
         self._current_players(item['current_players'], team)
         self._past_players(item['past_players'], team)
         return item
+
 
 class ActionsPipeline(object):
     """This is a class responsible for processing(adding to database) items from actions spider"""

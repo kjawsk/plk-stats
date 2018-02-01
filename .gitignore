@@ -6,6 +6,7 @@ crawler/crawler/sensitive.py
 page/page/sensitive.py
 page/database_filler.py
 crawler/logs/
+.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -4,15 +4,3 @@
 #
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/items.html
-
-from scrapy_djangoitem import DjangoItem
-from stats.models import Match, Team, Player
-
-class MatchItem(DjangoItem):
-    django_model = Match
-
-class TeamItem(DjangoItem):
-    django_model = Team
-
-class PlayerItem(DjangoItem):
-    django_model = Player

@@ -1,6 +1,7 @@
 from scrapy.contracts import Contract
 from scrapy.exceptions import ContractFail
 
+
 class FieldMinCountContract(Contract):
     """Contract used to check if output list has elements of key greater than minimum
     arg[0] - key
@@ -15,6 +16,7 @@ class FieldMinCountContract(Contract):
         past_players_count = len(output[0][key])
         if min_count > past_players_count:
             raise ContractFail('Output has too few arguments')
+
 
 class ValueNotInFieldContract(Contract):
     """Contract used to check if output key field does not contain specified value

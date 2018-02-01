@@ -1,10 +1,8 @@
 """This is a module spider for scraping players from teams sites"""
 
 import scrapy
-from datetime import datetime
 from w3lib.html import remove_tags
 
-from stats.models import Team, Player, Team_Player
 
 class PlayersSpider(scrapy.Spider):
 
@@ -44,7 +42,6 @@ class PlayersSpider(scrapy.Spider):
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
-
     def _past_players(self, response):
         """Handles fetching past players(past coach names are omitted) names for team from plk.pl"""
         infos = response.xpath(self.xpath_past_crew_infos).extract()
@@ -54,14 +51,12 @@ class PlayersSpider(scrapy.Spider):
         past_players = [x[0] for x in past_crew if 'zawodnik' in x[1]]
         return past_players
 
-
     def _current_players(self, response):
         """Handles fetching players names for team from plk.pl"""
         extracted = response.xpath(self.xpath_player).extract()
         cleaned = [remove_tags(x.replace("  ", "")) for x in extracted]
         current_players = [x.split("\n") for x in cleaned]
         return current_players
-
 
     def parse(self, response):
         """Parses response from each team site from plk.pl
