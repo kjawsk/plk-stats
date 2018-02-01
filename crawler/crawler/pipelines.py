@@ -1,6 +1,5 @@
 import logging
 
-from datetime import datetime
 from stats.models import (Action, Action_Type, Action_Subtype, Team, Team_Player, Match,
                           Period_Type, Player)
 
@@ -14,14 +13,14 @@ class PlayersPipeline(object):
         exist for team, this action is omitted."""
         players_in_db = Team_Player.objects.filter(team=team)
         for player in current_players:
-            if not players_in_db.filter(player__name=player[2]).exists():
+            if not players_in_db.filter(player__name=player['name']).exists():
                 player, _ = Player.objects.get_or_create(
-                    name=player[2],
-                    short_name=player[2].split()[0][0] + ". " + player[2].split()[1],
-                    passport=player[3],
-                    birth=datetime.strptime(player[4], "%Y-%m-%d"),
-                    height=player[5],
-                    position=player[6]
+                    name=player['name'],
+                    short_name=player['short_name'],
+                    passport=player['passport'],
+                    birth=player['birth'],
+                    height=player['height'],
+                    position=player['position']
                 )
                 Team_Player.objects.create(
                     team=team,
@@ -37,8 +36,8 @@ class PlayersPipeline(object):
         for player in past_players:
             if not players_in_db.filter(player__name=player).exists():
                 player, _ = Player.objects.get_or_create(
-                    name=player,
-                    short_name=player.split()[0][0] + ". " + player.split()[1]
+                    name=player['name'],
+                    short_name=player['short_name']
                 )
                 Team_Player.objects.create(
                     team=team,

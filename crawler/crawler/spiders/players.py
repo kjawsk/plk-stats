@@ -1,7 +1,10 @@
 """This is a module spider for scraping players from teams sites"""
 
 import scrapy
+
+from datetime import datetime
 from w3lib.html import remove_tags
+from crawler.items import PlayerItem, TeamPlayersItem
 
 
 class PlayersSpider(scrapy.Spider):
@@ -42,6 +45,30 @@ class PlayersSpider(scrapy.Spider):
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
+    @staticmethod
+    def _create_items_for_current(players):
+        res = []
+        for player in players:
+            player_item = PlayerItem(
+                name=player[2],
+                short_name=player[2].split()[0][0] + ". " + player[2].split()[1],
+                passport=player[3],
+                birth=datetime.strptime(player[4], "%Y-%m-%d"),
+                height=player[5],
+                position=player[6])
+            res.append(player_item)
+        return res
+
+    @staticmethod
+    def _create_items_for_past(players):
+        res = []
+        for player in players:
+            player_item = PlayerItem(
+                name=player,
+                short_name=player.split()[0][0] + ". " + player.split()[1])
+            res.append(player_item)
+        return res
+
     def _past_players(self, response):
         """Handles fetching past players(past coach names are omitted) names for team from plk.pl"""
         infos = response.xpath(self.xpath_past_crew_infos).extract()
@@ -49,14 +76,14 @@ class PlayersSpider(scrapy.Spider):
         names = response.xpath(self.xpath_past_crew_names).extract()
         past_crew = list(zip(names, infos))
         past_players = [x[0] for x in past_crew if 'zawodnik' in x[1]]
-        return past_players
+        return self._create_items_for_past(past_players)
 
     def _current_players(self, response):
         """Handles fetching players names for team from plk.pl"""
         extracted = response.xpath(self.xpath_player).extract()
         cleaned = [remove_tags(x.replace("  ", "")) for x in extracted]
         current_players = [x.split("\n") for x in cleaned]
-        return current_players
+        return self._create_items_for_current(current_players)
 
     def parse(self, response):
         """Parses response from each team site from plk.pl
@@ -68,7 +95,7 @@ class PlayersSpider(scrapy.Spider):
         @field_not_contain_value past_players Szczubiał
         @scrapes team_name current_players past_players
         """
-        result = dict()
+        result = TeamPlayersItem()
         result['team_name'] = response.xpath(self.xpath_team_name).extract()[0]
         result['current_players'] = self._current_players(response)
         result['past_players'] = self._past_players(response)
