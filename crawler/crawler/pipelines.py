@@ -7,7 +7,8 @@ from stats.models import Action, Action_Type, Action_Subtype, Team, Team_Player,
 class PlayersPipeline(object):
     """This is a class responsible for processing(adding to database) items from players spider"""
 
-    def _current_players(self, current_players, team):
+    @staticmethod
+    def _current_players(current_players, team):
         """Creates or gets player objects, then create Team Player object, if player has already
         exist for team, this action is omitted."""
         players_in_db = Team_Player.objects.filter(team=team)
@@ -27,7 +28,8 @@ class PlayersPipeline(object):
                     to=None
                 )
 
-    def _past_players(self, past_players, team):
+    @staticmethod
+    def _past_players(past_players, team):
         """Creates or gets player objects, then create Team Player object, if player has already
         exist for team, this action is omitted."""
         players_in_db = Team_Player.objects.filter(team=team)
