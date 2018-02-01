@@ -4,8 +4,8 @@ from scrapy.exceptions import ContractFail
 
 class FieldMinCountContract(Contract):
     """Contract used to check if output list has elements of key greater than minimum
-    arg[0] - key
-    arg[1] - count
+    arg[0] - string - key
+    arg[1] - integer - count
     """
 
     name = 'field_min_count'
@@ -20,8 +20,8 @@ class FieldMinCountContract(Contract):
 
 class ValueNotInFieldContract(Contract):
     """Contract used to check if output key field does not contain specified value
-    arg[0] - key
-    arg[1] - value
+    arg[0] - string - key
+    arg[1] - integer - value
     """
 
     name = 'field_not_contain_value'
