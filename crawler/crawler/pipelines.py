@@ -34,7 +34,7 @@ class PlayersPipeline(object):
         exist for team, this action is omitted."""
         players_in_db = Team_Player.objects.filter(team=team)
         for player in past_players:
-            if not players_in_db.filter(player__name=player).exists():
+            if not players_in_db.filter(player__name=player['name']).exists():
                 player, _ = Player.objects.get_or_create(
                     name=player['name'],
                     short_name=player['short_name']
