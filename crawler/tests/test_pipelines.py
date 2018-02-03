@@ -14,7 +14,6 @@ from stats.models import Team, Player, Team_Player
 from crawler.pipelines import PlayersPipeline
 
 
-@pytest.fixture
 def player_item(name):
     return PlayerItem(
         name=name,
@@ -39,20 +38,20 @@ def team_players_item():
     )
 
 
-def test_team_is_added(team_players_item):
+def test_team_is_created(team_players_item):
     PlayersPipeline().process_item(team_players_item, "")
 
     assert Team.objects.filter(name="New Team").exists()
 
 
-def test_team_is_not_added_when_it_already_exists(team_players_item):
-    Team.objects.create(name="New Team")
+def test_team_is_not_created_when_it_already_exists(team_players_item):
+    PlayersPipeline().process_item(team_players_item, "")
     PlayersPipeline().process_item(team_players_item, "")
 
     assert Team.objects.filter(name="New Team").count() == 1
 
 
-def test_players_are_added(team_players_item):
+def test_players_are_created(team_players_item):
     PlayersPipeline().process_item(team_players_item, "")
 
     assert Player.objects.filter(name="John Doe").exists()
@@ -61,7 +60,7 @@ def test_players_are_added(team_players_item):
     assert Player.objects.filter(name="Ty Law").exists()
 
 
-def test_team_players_are_added(team_players_item):
+def test_team_players_are_created(team_players_item):
     PlayersPipeline().process_item(team_players_item, "")
 
     assert Team_Player.objects.filter(player__name="John Doe", team__name="New Team").exists()
@@ -70,16 +69,17 @@ def test_team_players_are_added(team_players_item):
     assert Team_Player.objects.filter(player__name="Ty Law", team__name="New Team").exists()
 
 
-def test_player_is_not_added_when_it_already_exists(team_players_item):
-    Player.objects.create(
-        name="John Doe",
-        short_name="J. Doe",
-        passport="USA",
-        birth="1990-08-27",
-        height="198",
-        position="point guard",
-    )
+def test_player_is_not_created_when_it_already_exists(team_players_item):
+    PlayersPipeline().process_item(team_players_item, "")
     PlayersPipeline().process_item(team_players_item, "")
 
     assert Player.objects.filter(name="John Doe").count() == 1
+    assert Player.objects.filter(name="Ty Law").count() == 1
 
+
+def test_team_player_is_not_created_when_it_already_exists(team_players_item):
+    PlayersPipeline().process_item(team_players_item, "")
+    PlayersPipeline().process_item(team_players_item, "")
+
+    assert Team_Player.objects.filter(player__name="Kobe Bry", team__name="New Team").count() == 1
+    assert Team_Player.objects.filter(player__name="Big Mike", team__name="New Team").count() == 1
