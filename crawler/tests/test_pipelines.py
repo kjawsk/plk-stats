@@ -40,39 +40,27 @@ def player_items():
 
 
 @pytest.fixture
-def team_players_item():
+def team_players_item(request):
     items = player_items()
     player_1 = items.__next__()
     player_2 = items.__next__()
     player_3 = items.__next__()
     player_4 = items.__next__()
     return TeamPlayersItem(
-        team_name="New Team",
+        team_name=request.param,
         current_players=[player_1, player_2],
         past_players=[player_3, player_4],
     )
+duplicate_team_players_item = team_players_item
 
-
-@pytest.fixture
-def team_players_item2():
-    items = player_items()
-    player_1 = items.__next__()
-    player_2 = items.__next__()
-    player_3 = items.__next__()
-    player_4 = items.__next__()
-    return TeamPlayersItem(
-        team_name="Old Team",
-        current_players=[player_1, player_2],
-        past_players=[player_3, player_4],
-    )
-
-
+@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
 def test_team_is_created(team_players_item):
     PlayersPipeline().process_item(team_players_item, "")
 
     assert Team.objects.filter(name="New Team").exists()
 
 
+@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
 def test_team_is_not_created_when_it_already_exists(team_players_item):
     PlayersPipeline().process_item(team_players_item, "")
     PlayersPipeline().process_item(team_players_item, "")
@@ -80,6 +68,7 @@ def test_team_is_not_created_when_it_already_exists(team_players_item):
     assert Team.objects.filter(name="New Team").count() == 1
 
 
+@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
 def test_players_are_created(team_players_item):
     PlayersPipeline().process_item(team_players_item, "")
 
@@ -87,6 +76,7 @@ def test_players_are_created(team_players_item):
         assert Player.objects.filter(name=player[0]).exists()
 
 
+@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
 def test_team_players_are_created(team_players_item):
     PlayersPipeline().process_item(team_players_item, "")
 
@@ -94,6 +84,7 @@ def test_team_players_are_created(team_players_item):
         assert Team_Player.objects.filter(player__name=player[0], team__name="New Team").exists()
 
 
+@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
 def test_player_is_not_created_when_it_already_exists(team_players_item):
     PlayersPipeline().process_item(team_players_item, "")
     PlayersPipeline().process_item(team_players_item, "")
@@ -102,6 +93,7 @@ def test_player_is_not_created_when_it_already_exists(team_players_item):
         assert Player.objects.filter(name=player[0]).count() == 1
 
 
+@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
 def test_team_player_is_not_created_when_it_already_exists(team_players_item):
     PlayersPipeline().process_item(team_players_item, "")
     PlayersPipeline().process_item(team_players_item, "")
@@ -110,9 +102,11 @@ def test_team_player_is_not_created_when_it_already_exists(team_players_item):
         assert Team_Player.objects.filter(player__name=player[0], team__name="New Team").count() == 1
 
 
-def test_once_created_player_can_be_added_to_two_teams(team_players_item, team_players_item2):
+@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
+@pytest.mark.parametrize('duplicate_team_players_item', ['Old Team'], indirect=True)
+def test_once_created_player_can_be_added_to_two_teams(team_players_item, duplicate_team_players_item):
     PlayersPipeline().process_item(team_players_item, "")
-    PlayersPipeline().process_item(team_players_item2, "")
+    PlayersPipeline().process_item(duplicate_team_players_item, "")
 
     for player in players():
         assert Player.objects.filter(name=player[0]).count() == 1
