@@ -1,19 +1,19 @@
 """Tests for pipelines"""
 
-import django
 import os
-import pytest
 import sys
+import django
+import pytest
 sys.path.append("/home/karol/Projects/plkStats/page/")
 os.environ["DJANGO_SETTINGS_MODULE"] = "page.settings"
 django.setup()
 pytestmark = pytest.mark.django_db
 
-from crawler.items import PlayerItem, TeamPlayersItem
 from stats.models import Team, Player, Team_Player
+from crawler.items import PlayerItem, TeamPlayersItem
 from crawler.pipelines import PlayersPipeline
 
-## https://docs.pytest.org/en/latest/example/parametrize.html#different-options-for-test-ids
+
 PLAYERS = [
     ("John Doe", "J. Doe", "USA", "1990-05-27", "198", "shooting guard"),
     ("Kobe Bry", "K. Bry", "USA", "1991-06-27", "188", "point guard"),
@@ -23,11 +23,13 @@ PLAYERS = [
 
 
 def players():
+    """Yields player"""
     for idx, _ in enumerate(PLAYERS):
         yield PLAYERS[idx]
 
 
 def player_items():
+    """Yields scrapy PlayerItem based on players"""
     for player in players():
         name, short_name, passport, birth, height, position = player
         yield PlayerItem(
@@ -42,6 +44,8 @@ def player_items():
 
 @pytest.fixture
 def team_players():
+    """Returns wrapped method, which returns TeamPlayersItem with team_name specified in input and
+    two current players and two past players"""
     def wrapped(team_name):
         items = player_items()
         player_1 = items.__next__()
@@ -58,6 +62,7 @@ def team_players():
 
 @pytest.mark.parametrize('team', ['New Team'])
 def test_team_is_created(team_players, team):
+    """Checks if team is created"""
     PlayersPipeline().process_item(team_players(team), "")
 
     assert Team.objects.filter(name=team).exists()
@@ -65,6 +70,7 @@ def test_team_is_created(team_players, team):
 
 @pytest.mark.parametrize('team', ['New Team'])
 def test_team_is_not_created_when_it_already_exists(team_players, team):
+    """Checks if team is not created, when it already exists"""
     PlayersPipeline().process_item(team_players(team), "")
     PlayersPipeline().process_item(team_players(team), "")
 
@@ -73,6 +79,7 @@ def test_team_is_not_created_when_it_already_exists(team_players, team):
 
 @pytest.mark.parametrize('team', ['New Team'])
 def test_players_are_created(team_players, team):
+    """Checks if Players are created"""
     PlayersPipeline().process_item(team_players(team), "")
 
     for player in players():
@@ -81,6 +88,7 @@ def test_players_are_created(team_players, team):
 
 @pytest.mark.parametrize('team', ['New Team'])
 def test_team_players_are_created(team_players, team):
+    """Checks if TeamPlayers are created"""
     PlayersPipeline().process_item(team_players(team), "")
 
     for player in players():
@@ -89,6 +97,7 @@ def test_team_players_are_created(team_players, team):
 
 @pytest.mark.parametrize('team', ['New Team'])
 def test_player_is_not_created_when_it_already_exists(team_players, team):
+    """Checks if Players are not created, when they already exist"""
     PlayersPipeline().process_item(team_players(team), "")
     PlayersPipeline().process_item(team_players(team), "")
 
@@ -98,12 +107,12 @@ def test_player_is_not_created_when_it_already_exists(team_players, team):
 
 @pytest.mark.parametrize('team', ['New Team'])
 def test_team_player_is_not_created_when_it_already_exists(team_players, team):
+    """Checks if TeamPlayers are not created, when they already exist"""
     PlayersPipeline().process_item(team_players(team), "")
     PlayersPipeline().process_item(team_players(team), "")
 
     for player in players():
         assert Team_Player.objects.filter(player__name=player[0], team__name=team).count() == 1
-
 
 
 @pytest.mark.parametrize(
@@ -112,6 +121,7 @@ def test_team_player_is_not_created_when_it_already_exists(team_players, team):
     ]
 )
 def test_once_created_player_can_be_added_to_two_teams(team_players, team_1, team_2):
+    """Checks if Player is created once(with two TeamPlayers), when he played for two teams"""
     PlayersPipeline().process_item(team_players(team_1), "")
     PlayersPipeline().process_item(team_players(team_2), "")
 
