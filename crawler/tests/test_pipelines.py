@@ -13,6 +13,7 @@ from crawler.items import PlayerItem, TeamPlayersItem
 from stats.models import Team, Player, Team_Player
 from crawler.pipelines import PlayersPipeline
 
+## https://docs.pytest.org/en/latest/example/parametrize.html#different-options-for-test-ids
 PLAYERS = [
     ("John Doe", "J. Doe", "USA", "1990-05-27", "198", "shooting guard"),
     ("Kobe Bry", "K. Bry", "USA", "1991-06-27", "188", "point guard"),
@@ -40,75 +41,81 @@ def player_items():
 
 
 @pytest.fixture
-def team_players_item(request):
-    items = player_items()
-    player_1 = items.__next__()
-    player_2 = items.__next__()
-    player_3 = items.__next__()
-    player_4 = items.__next__()
-    return TeamPlayersItem(
-        team_name=request.param,
-        current_players=[player_1, player_2],
-        past_players=[player_3, player_4],
-    )
-duplicate_team_players_item = team_players_item
-
-@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
-def test_team_is_created(team_players_item):
-    PlayersPipeline().process_item(team_players_item, "")
-
-    assert Team.objects.filter(name="New Team").exists()
+def team_players():
+    def wrapped(team_name):
+        items = player_items()
+        player_1 = items.__next__()
+        player_2 = items.__next__()
+        player_3 = items.__next__()
+        player_4 = items.__next__()
+        return TeamPlayersItem(
+            team_name=team_name,
+            current_players=[player_1, player_2],
+            past_players=[player_3, player_4],
+        )
+    return wrapped
 
 
-@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
-def test_team_is_not_created_when_it_already_exists(team_players_item):
-    PlayersPipeline().process_item(team_players_item, "")
-    PlayersPipeline().process_item(team_players_item, "")
+@pytest.mark.parametrize('team', ['New Team'])
+def test_team_is_created(team_players, team):
+    PlayersPipeline().process_item(team_players(team), "")
 
-    assert Team.objects.filter(name="New Team").count() == 1
+    assert Team.objects.filter(name=team).exists()
 
 
-@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
-def test_players_are_created(team_players_item):
-    PlayersPipeline().process_item(team_players_item, "")
+@pytest.mark.parametrize('team', ['New Team'])
+def test_team_is_not_created_when_it_already_exists(team_players, team):
+    PlayersPipeline().process_item(team_players(team), "")
+    PlayersPipeline().process_item(team_players(team), "")
+
+    assert Team.objects.filter(name=team).count() == 1
+
+
+@pytest.mark.parametrize('team', ['New Team'])
+def test_players_are_created(team_players, team):
+    PlayersPipeline().process_item(team_players(team), "")
 
     for player in players():
         assert Player.objects.filter(name=player[0]).exists()
 
 
-@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
-def test_team_players_are_created(team_players_item):
-    PlayersPipeline().process_item(team_players_item, "")
+@pytest.mark.parametrize('team', ['New Team'])
+def test_team_players_are_created(team_players, team):
+    PlayersPipeline().process_item(team_players(team), "")
 
     for player in players():
-        assert Team_Player.objects.filter(player__name=player[0], team__name="New Team").exists()
+        assert Team_Player.objects.filter(player__name=player[0], team__name=team).exists()
 
 
-@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
-def test_player_is_not_created_when_it_already_exists(team_players_item):
-    PlayersPipeline().process_item(team_players_item, "")
-    PlayersPipeline().process_item(team_players_item, "")
-
-    for player in players():
-        assert Player.objects.filter(name=player[0]).count() == 1
-
-
-@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
-def test_team_player_is_not_created_when_it_already_exists(team_players_item):
-    PlayersPipeline().process_item(team_players_item, "")
-    PlayersPipeline().process_item(team_players_item, "")
-
-    for player in players():
-        assert Team_Player.objects.filter(player__name=player[0], team__name="New Team").count() == 1
-
-
-@pytest.mark.parametrize('team_players_item', ['New Team'], indirect=True)
-@pytest.mark.parametrize('duplicate_team_players_item', ['Old Team'], indirect=True)
-def test_once_created_player_can_be_added_to_two_teams(team_players_item, duplicate_team_players_item):
-    PlayersPipeline().process_item(team_players_item, "")
-    PlayersPipeline().process_item(duplicate_team_players_item, "")
+@pytest.mark.parametrize('team', ['New Team'])
+def test_player_is_not_created_when_it_already_exists(team_players, team):
+    PlayersPipeline().process_item(team_players(team), "")
+    PlayersPipeline().process_item(team_players(team), "")
 
     for player in players():
         assert Player.objects.filter(name=player[0]).count() == 1
-        assert Team_Player.objects.filter(player__name=player[0], team__name="New Team").count() == 1
-        assert Team_Player.objects.filter(player__name=player[0], team__name="Old Team").count() == 1
+
+
+@pytest.mark.parametrize('team', ['New Team'])
+def test_team_player_is_not_created_when_it_already_exists(team_players, team):
+    PlayersPipeline().process_item(team_players(team), "")
+    PlayersPipeline().process_item(team_players(team), "")
+
+    for player in players():
+        assert Team_Player.objects.filter(player__name=player[0], team__name=team).count() == 1
+
+
+
+@pytest.mark.parametrize(
+    'team_1, team_2', [
+        ('Anwil Włocławek', 'Start Lublin')
+    ]
+)
+def test_once_created_player_can_be_added_to_two_teams(team_players, team_1, team_2):
+    PlayersPipeline().process_item(team_players(team_1), "")
+    PlayersPipeline().process_item(team_players(team_2), "")
+
+    for player in players():
+        assert Player.objects.filter(name=player[0]).count() == 1
+        assert Team_Player.objects.filter(player__name=player[0], team__name=team_1).count() == 1
+        assert Team_Player.objects.filter(player__name=player[0], team__name=team_2).count() == 1
